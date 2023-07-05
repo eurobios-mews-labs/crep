@@ -27,7 +27,7 @@ def test_merge_basic(get_examples):
     ret_r = merge(dfl, dfr,
                   id_continuous=["t1", "t2"],
                   id_discrete=["id"],
-                  how="right")
+                  how="right", verbose=True)
     ret_th = pd.DataFrame(
         dict(id=[1, 1, 1, 1, 2, 2, 2],
              t1=[0, 5, 10, 80, 0, 100, 120],
@@ -45,7 +45,7 @@ def test_merge_basic(get_examples):
 
 def test_fill_stretch(get_examples):
     dfl, _ = get_examples
-    ret = __fill_stretch(dfl,
+    ret = __fill_stretch(dfl.__deepcopy__(),
                          id_continuous=["t1", "t2"],
                          id_discrete=["id"],
                          )
@@ -54,7 +54,7 @@ def test_fill_stretch(get_examples):
 
 def test__merge(get_examples):
     df_left, df_right = get_examples
-    df_merge = __merge(df_left, df_right,
+    df_merge = __merge(df_left.__deepcopy__(), df_right.__deepcopy__(),
                        id_discrete=["id"], id_continuous=["t1", "t2"])
 
 
@@ -66,6 +66,24 @@ def test_aggregate_constant(get_examples):
     df1, _ = get_examples
     ret = aggregate_constant(df1, id_continuous=["t1", "t2"],
                              id_discrete=["id"])
-    print(ret)
-    print(pd.__version__)
+
     assert len(ret) < len(df1)
+
+
+def test_merge_duplicates(get_examples):
+    dfl, dfr = get_examples
+    ret_r = merge(dfl, dfr,
+                  id_continuous=["t1", "t2"],
+                  id_discrete=["id"],
+                  how="right", verbose=True, remove_duplicates=True)
+    assert all(ret_r.isna().sum() == 0)
+
+
+def test_aggregate_constant_no_aggregation(get_examples):
+    _, dfr = get_examples
+    ret = aggregate_constant(dfr, id_continuous=["t1", "t2"],
+                             id_discrete=["id"])
+
+    ret2 = aggregate_constant(ret, id_continuous=["t1", "t2"],
+                             id_discrete=["id"])
+    assert ret.equals(ret2)
