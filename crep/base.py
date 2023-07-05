@@ -88,21 +88,33 @@ def merge(
     return df
 
 
-def aggregate_constant(data: pd.DataFrame,
+def aggregate_constant(df: pd.DataFrame,
                        id_discrete: iter,
                        id_continuous: iter,
                        ):
     """
+
+    Parameters
+    ----------
+    df
+    id_discrete
+    id_continuous
+
+    Returns
+    -------
+
     """
-    data_ = data.__deepcopy__()
+    data_ = df.copy(deep=True)
+
     data_ = data_.sort_values([*id_discrete, *id_continuous])
     # 1/ detect unnecessary segment
     indexes = [*id_discrete, *id_continuous]
-    no_index = set(data_.columns).difference(indexes)
+    no_index = list(set(data_.columns).difference(indexes))
     id1, id2 = id_continuous
-    data_["disc"] = compute_discontinuity(data_, id_discrete, id_continuous)
-    data_["identical"] = False
-    data_["keep"] = False
+
+    disc = compute_discontinuity(data_, id_discrete, id_continuous)
+    identical = False * np.ones_like(disc)
+
     index = data_.index
 
     data_1 = data_.loc[index[:-1], no_index].fillna(np.nan).values
@@ -111,22 +123,26 @@ def aggregate_constant(data: pd.DataFrame,
     np_bool: np.array = np.equal(data_1, data_2)
 
     res = pd.Series(np_bool.sum(axis=1), index=index[:-1])
-    res = pd.Series(res == len(no_index))
-    data_.loc[res.index, "identical"] = res.values
-    identical = data_["identical"].values
+    res = pd.Series(res == len(no_index)).values
 
-    identical[:-1] = identical[:-1] & ~data_["disc"].values[1:]
+    identical[:-1] = res
+    identical[:-1] = identical[:-1] & ~disc[1:]
+
+    dat = pd.DataFrame(dict(
+        identical=identical,
+        keep=False * np.ones_like(disc)),
+        index=data_.index)
+
     keep = list(set(np.where(identical)[0]).union(np.where(identical)[0] + 1))
-    data_.loc[data_.index[identical], "identical"] = True
-    data_.loc[data_.index[keep], "keep"] = True
-    n = data_["identical"].sum()
+    dat.loc[keep, "keep"] = True
+    n = identical.sum()
     if n == 0:
-        return data
+        return df
 
     data_merge = data_.sort_values([*id_discrete, *id_continuous])
     data_merge[f"{id1}_new"] = np.nan
-    b = ~ data_merge["identical"]
-    b_disc = [True] + list(~data_merge["identical"].values[:-1])
+    b = ~ dat["identical"]
+    b_disc = [True] + list(~dat["identical"].values[:-1])
     data_merge.loc[b, f"{id2}_new"] = data_merge.loc[b, id2]
     data_merge.loc[b_disc, f"{id1}_new"] = data_merge.loc[b_disc, id1]
 
@@ -136,7 +152,7 @@ def aggregate_constant(data: pd.DataFrame,
     data_merge = data_merge.drop(list(id_continuous), axis=1)
     data_merge = data_merge.rename({f"{id1}_new": id1, f"{id2}_new": id2},
                                    axis=1)
-    return data_merge[data.columns].drop_duplicates()
+    return data_merge[df.columns].drop_duplicates()
 
 
 def __merge_index(data_left, data_right,
@@ -162,10 +178,8 @@ def __merge_index(data_left, data_right,
                                  id_discrete=id_discrete,
                                  id_continuous=id_c, names=names)
     else:
-        data_left, data_right = data_left.loc[:, id_].dropna(), data_right.loc[
-                                                                :, id_].dropna()
-        data_left.loc[:, id_c] = data_left.loc[:, id_c]
-        data_right.loc[:, id_c] = data_right.loc[:, id_c]
+        data_left = data_left.loc[:, id_].dropna()
+        data_right = data_right.loc[:, id_].dropna()
         df_merge = __merge(data_left, data_right,
                            id_discrete=id_discrete, id_continuous=id_c)
     return df_merge
