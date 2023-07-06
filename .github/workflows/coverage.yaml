@@ -39,10 +39,7 @@ jobs:
           python -m pip install tox tox-gh-actions
           pip install .
           pip install coverage
-
-      - name: "Run tox for ${{ matrix.python-version }}"
-        run: |
-          python -m tox
+          
       - name: "Run coverage"
         run: |
           coverage run -m pytest
