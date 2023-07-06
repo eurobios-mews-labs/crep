@@ -85,5 +85,5 @@ def test_aggregate_constant_no_aggregation(get_examples):
                              id_discrete=["id"])
 
     ret2 = aggregate_constant(ret, id_continuous=["t1", "t2"],
-                             id_discrete=["id"])
+                              id_discrete=["id"])
     assert ret.equals(ret2)
