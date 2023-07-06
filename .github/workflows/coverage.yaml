@@ -37,13 +37,15 @@ jobs:
       - name: "Install dependencies"
         run: |
           python -m pip install tox tox-gh-actions
+          pip install .
+          pip install coverage
 
       - name: "Run tox for ${{ matrix.python-version }}"
         run: |
           python -m tox
       - name: "Run coverage"
         run: |
-          python -m coverage 
+          coverage run -m pytest
       - name: "Upload coverage data"
         uses: actions/upload-artifact@v3
         with:
