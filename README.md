@@ -1,4 +1,5 @@
 # Tabular data processing for Continuous REPresentation
+[![pytest](https://github.com/eurobios-scb/crep/actions/workflows/pytest.yml/badge.svg?event=push)](https://docs.pytest.org)
 
 This simple module aims at providing some function to tackle tabular 
 data that have a continuous axis. In situations, this index can represent 
