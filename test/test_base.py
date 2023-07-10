@@ -64,10 +64,18 @@ def test_check_args(get_examples):
 
 def test_aggregate_constant(get_examples):
     df1, _ = get_examples
+    df1.index = np.random.uniform(size=len(df1))
     ret = aggregate_constant(df1, id_continuous=["t1", "t2"],
                              id_discrete=["id"])
-
+    df_left = pd.DataFrame(
+        dict(id=[1, 2, 2, 2],
+             t1=[0, 0, 100, 120],
+             t2=[100, 90, 110, 130],
+             data1=[0.2, 0.1, 0.3, 0.2])
+    )
+    df_left.index = ret.index
     assert len(ret) < len(df1)
+    assert df_left.equals(ret)
 
 
 def test_merge_duplicates(get_examples):

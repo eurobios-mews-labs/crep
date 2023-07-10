@@ -105,7 +105,7 @@ def aggregate_constant(df: pd.DataFrame,
 
     """
     data_ = df.copy(deep=True)
-
+    dtypes = data_.dtypes
     data_ = data_.sort_values([*id_discrete, *id_continuous])
     # 1/ detect unnecessary segment
     indexes = [*id_discrete, *id_continuous]
@@ -128,16 +128,16 @@ def aggregate_constant(df: pd.DataFrame,
     identical[:-1] = res
     identical[:-1] = identical[:-1] & ~disc[1:]
 
+    n = identical.sum()
+    if n == 0:
+        return df
     dat = pd.DataFrame(dict(
         identical=identical,
         keep=False * np.ones_like(disc)),
         index=data_.index)
 
     keep = list(set(np.where(identical)[0]).union(np.where(identical)[0] + 1))
-    dat.loc[keep, "keep"] = True
-    n = identical.sum()
-    if n == 0:
-        return df
+    dat.loc[dat.index[keep], "keep"] = True
 
     data_merge = data_.sort_values([*id_discrete, *id_continuous])
     data_merge[f"{id1}_new"] = np.nan
@@ -152,7 +152,7 @@ def aggregate_constant(df: pd.DataFrame,
     data_merge = data_merge.drop(list(id_continuous), axis=1)
     data_merge = data_merge.rename({f"{id1}_new": id1, f"{id2}_new": id2},
                                    axis=1)
-    return data_merge[df.columns].drop_duplicates()
+    return data_merge[df.columns].drop_duplicates().astype(dtypes)
 
 
 def __merge_index(data_left, data_right,
