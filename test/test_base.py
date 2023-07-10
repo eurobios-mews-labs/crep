@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 
 from crep import merge, aggregate_constant
-from crep.base import __fill_stretch, __merge
+from crep.base import __fill_stretch, __merge, __check_args_merge
 
 
 def test_merge_basic(get_examples):
@@ -87,3 +87,31 @@ def test_aggregate_constant_no_aggregation(get_examples):
     ret2 = aggregate_constant(ret, id_continuous=["t1", "t2"],
                               id_discrete=["id"])
     assert ret.equals(ret2)
+
+
+def test_merge_symetry(get_examples):
+    dfl, dfr = get_examples
+    ret1 = merge(dfl, dfr,
+                 id_continuous=["t1", "t2"],
+                 id_discrete=["id"],
+                 how="outer")
+    ret2 = merge(dfr, dfl,
+                 id_continuous=["t1", "t2"],
+                 id_discrete=["id"],
+                 how="outer")
+
+    assert ret1.equals(ret2[ret1.columns])
+
+
+def test_merge_discrete_id(get_advanced_examples):
+    data_left, data_right = get_advanced_examples
+
+    ret1 = merge(data_left, data_right,
+                 id_continuous=["t1", "t2"],
+                 id_discrete=["id", "id2"],
+                 how="outer")
+    ret2 = merge(data_left, data_right,
+                 id_continuous=["t1", "t2"],
+                 id_discrete=["id"],
+                 how="outer")
+    assert len(ret1) > len(ret2)

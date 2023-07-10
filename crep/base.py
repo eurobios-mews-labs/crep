@@ -432,7 +432,7 @@ def __check_args_merge(data_left, data_right,
                        id_discrete,
                        how):
     for c in [*id_continuous, *id_discrete]:
-        if c not in data_left.columns or c not in data_right.columns:
+        if not (c in data_left.columns or c in data_right.columns):
             raise ValueError(f"{c} is not in columns")
     if not len(id_continuous) == 2:
         raise ValueError("Only two continuous index is possible")
