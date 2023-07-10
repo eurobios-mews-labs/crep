@@ -6,7 +6,7 @@ classifiers = [
               "Programming Language :: Python",
               "Programming Language :: Python :: 3",
 ]
-authors = "Eurobios <contact_ost@eurobios.com>"
+authors = ["Eurobios <contact_ost@eurobios.com>"]
 readme = "README.md"
 packages = [{ include = "crep" }]
 license = "Apache-2.0"
