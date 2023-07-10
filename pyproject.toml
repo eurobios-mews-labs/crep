@@ -1,7 +1,3 @@
-[project]
-authors = [{ name = "Eurobios", email = "contact_ost@eurobios.com" }]
-license = { file = "LICENSE" }
-
 [tool.poetry]
 name = "crep"
 version = "2023.2.1"
@@ -10,8 +6,10 @@ classifiers = [
               "Programming Language :: Python",
               "Programming Language :: Python :: 3",
 ]
+authors = "Eurobios <contact_ost@eurobios.com>"
 readme = "README.md"
 packages = [{ include = "crep" }]
+license = "Apache-2.0"
 
 [tool.poetry.dependencies]
 python = "^3"
