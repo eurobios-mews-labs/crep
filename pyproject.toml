@@ -10,7 +10,7 @@ classifiers = [
               "Programming Language :: Python",
               "Programming Language :: Python :: 3",
 ]
-authors = ["Eurobios <contact_ost@eurobios.com>"]
+authors = [{ name = 'Vincent Laurent', email = 'vlaurent@eurobios.com' }]
 readme = "README.md"
 packages = [{ include = "crep" }]
 requires-python = '>=3.1'
