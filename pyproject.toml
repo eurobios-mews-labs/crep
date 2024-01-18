@@ -10,14 +10,12 @@ authors = ["Eurobios <contact_ost@eurobios.com>"]
 readme = "README.md"
 packages = [{ include = "crep" }]
 license = "Apache-2.0"
+requires-python = '>=3.1'
+dependencies = [
+  "pandas>1",
+  "numpy",
+]
 
-[tool.poetry.dependencies]
-python = "^3"
-pandas = "^1"
-numpy = "*"
-coverage = { version = "^5", optional = true }
-pytest = { version = "*", optional = true }
-pytest-cov = { version = "*", optional = true }
 
 [project.optional-dependencies]
 tests = [
