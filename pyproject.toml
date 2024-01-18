@@ -1,4 +1,8 @@
-[tool.poetry]
+[build-system]
+requires = ["setuptools>=61.0.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
 name = "crep"
 version = "2023.2.1"
 description = ""
