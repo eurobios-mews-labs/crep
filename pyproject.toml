@@ -13,7 +13,6 @@ classifiers = [
 authors = ["Eurobios <contact_ost@eurobios.com>"]
 readme = "README.md"
 packages = [{ include = "crep" }]
-license = "Apache-2.0"
 requires-python = '>=3.1'
 dependencies = [
   "pandas>1",
