@@ -6,29 +6,11 @@ build-backend = "setuptools.build_meta"
 name = "crep"
 version = "2023.2.1"
 description = ""
-classifiers = [
-              "Programming Language :: Python",
-              "Programming Language :: Python :: 3",
-]
 authors = [{ name = 'Vincent Laurent', email = 'vlaurent@eurobios.com' }]
 readme = "README.md"
-packages = [{ include = "crep" }]
-requires-python = '>=3.1'
+requires-python = '>=3.6'
 dependencies = [
   "pandas>1",
   "numpy",
 ]
 
-
-[project.optional-dependencies]
-tests = [
-  'coverage>=5.0.3',
-  'pytest',
-  "pytest-cov",
-
-]
-
-[tool.coverage.run]
-omit = [
-    "env/*",
-]
