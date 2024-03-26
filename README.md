@@ -45,6 +45,37 @@ Yield the following result
 
 <img src="examples/basic_example.png" alt="drawing" width="350"/>
 
+## Tools
+
+Test if your data is admissible to the merge function, you can use the tools module
+
+```python
+import pandas as pd
+
+from crep import tools
+
+
+df_admissible = pd.DataFrame(
+    dict(id=[2, 2, 2],
+         t1=[0, 100, 120],
+         t2=[100, 120, 130],
+         data1=[0.2, 0.1, 0.5])
+)
+df_not_admissible = pd.DataFrame(
+    dict(id=[2, 2, 2],
+         t1=[0, 90, 120],
+         t2=[100, 120, 130],
+         data1=[0.2, 0.1, 0.5])
+)
+# the second table is not admissible because for t in [90,100] two values are possible
+
+assert tools.admissible_dataframe(df_admissible, id_continuous=["t1", "t2"],
+            id_discrete=["id"])
+assert not tools.admissible_dataframe(df_not_admissible, id_continuous=["t1", "t2"],
+            id_discrete=["id"])
+
+```
+
 
 ## Acknowledgement
 This implementation come from an SNCF DTIPG project and is
