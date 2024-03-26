@@ -14,7 +14,7 @@ def get_overlapping(data: pd.DataFrame,
     data_ = data_.sort_values(by=[*id_discrete, id_continuous[0]])
     data_["r1"] = range(len(data_))
 
-    condition = data_[id_continuous[1]].iloc[:-1].values >= data_[id_continuous[0]].iloc[1:].values
+    condition = data_[id_continuous[1]].iloc[:-1].values > data_[id_continuous[0]].iloc[1:].values
     data_["local_overlap"] = False
     data_.loc[data_.index[1:][condition], "local_overlap"] = True
     for i in id_discrete:
@@ -39,6 +39,6 @@ def admissible_dataframe(data: pd.DataFrame,
 
 def sample_non_admissible_data(data: pd.DataFrame,
                                id_discrete: iter,
-                               id_continuous: iter):
+                               id_continuous: iter)->pd.DataFrame:
     return data[get_overlapping(data, id_discrete,
                                 id_continuous)]
