@@ -39,6 +39,6 @@ def admissible_dataframe(data: pd.DataFrame,
 
 def sample_non_admissible_data(data: pd.DataFrame,
                                id_discrete: iter,
-                               id_continuous: iter)->pd.DataFrame:
+                               id_continuous: iter) -> pd.DataFrame:
     return data[get_overlapping(data, id_discrete,
                                 id_continuous)]
