@@ -69,13 +69,20 @@ df_not_admissible = pd.DataFrame(
 )
 # the second table is not admissible because for t in [90,100] two values are possible
 
-assert tools.admissible_dataframe(df_admissible, id_continuous=["t1", "t2"],
-            id_discrete=["id"])
-assert not tools.admissible_dataframe(df_not_admissible, id_continuous=["t1", "t2"],
-            id_discrete=["id"])
-
+assert tools.admissible_dataframe(
+    df_admissible, id_continuous=["t1", "t2"],
+    id_discrete=["id"])
+assert not tools.admissible_dataframe(
+    df_not_admissible, id_continuous=["t1", "t2"],
+    id_discrete=["id"])
+print(tools.sample_non_admissible_data(
+    df_not_admissible, id_continuous=["t1", "t2"],
+    id_discrete=["id"]
+))
+# id  t1   t2  data1
+# 1   2  90  120    0.1
 ```
-
+ 
 
 ## Acknowledgement
 This implementation come from an SNCF DTIPG project and is
