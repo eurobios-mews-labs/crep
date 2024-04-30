@@ -48,4 +48,3 @@ This implementation come from an SNCF DTIPG project and is
 developed and maintained by Eurobios Mews Labs and SNCF DTIPG.
 
 <img src="https://www.sncf.com/themes/contrib/sncf_theme/images/logo-sncf.svg?v=3102549095" alt="drawing" width="100"/>
-<img src="https://www.mews-partners.com/wp-content/uploads/2021/09/Eurobios-Mews-Labs-logo-768x274.png.webp" alt="drawing" width="175"/>
