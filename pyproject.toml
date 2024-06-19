@@ -1,38 +1,16 @@
-[tool.poetry]
-name = "crep"
-version = "2023.2.1"
-description = ""
-classifiers = [
-              "Programming Language :: Python",
-              "Programming Language :: Python :: 3",
-]
-authors = ["Eurobios <contact_ost@eurobios.com>"]
-readme = "README.md"
-packages = [{ include = "crep" }]
-license = "Apache-2.0"
-
-[tool.poetry.dependencies]
-python = "^3"
-pandas = "^1"
-numpy = "*"
-coverage = { version = "^5", optional = true }
-pytest = { version = "*", optional = true }
-pytest-cov = { version = "*", optional = true }
-
-[project.optional-dependencies]
-tests = [
-  'coverage>=5.0.3',
-  'pytest',
-  "pytest-cov",
-
-]
-
-
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["setuptools>=61.0.0"]
+build-backend = "setuptools.build_meta"
 
-[tool.coverage.run]
-omit = [
-    "env/*",
+[project]
+name = "crep"
+version = "2024.1.1"
+description = ""
+authors = [{ name = 'Vincent Laurent', email = 'vlaurent@eurobios.com' }]
+readme = "README.md"
+requires-python = '>=3.6'
+dependencies = [
+  "pandas>1",
+  "numpy",
 ]
+
