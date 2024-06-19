@@ -49,8 +49,7 @@ def merge(
     id_discrete = list(id_discrete)
 
     id_discrete_left = [col for col in data_left.columns if col in id_discrete]
-    id_discrete_right = [col for col in data_right.columns if
-                         col in id_discrete]
+    id_discrete_right = [col for col in data_right.columns if col in id_discrete]
     data_left, data_right = __fix_discrete_index(
         data_left, data_right,
         id_discrete_left,
@@ -218,15 +217,15 @@ def __merge_event(
     return df_merge
 
 
-def __merge(data_left, data_right,
-            id_discrete,
+def __merge(df_left: pd.DataFrame, df_right: pd.DataFrame,
+            id_discrete: iter,
             id_continuous,
             names=("left", "right")):
     index = [*id_discrete, *id_continuous]
 
     df_id1, df_id2, index_left, index_right = __refactor_data(
-        data_left,
-        data_right, id_continuous, id_discrete,
+        df_left,
+        df_right, id_continuous, id_discrete,
         names=names)
     df_id1_stretched = __fill_stretch(
         df_id1, id_discrete=id_discrete,
@@ -348,8 +347,7 @@ def __fix_discrete_index(
     id_inter = [id_ for id_ in id_discrete_right if id_ in id_discrete_left]
     id_inter = list(id_inter)
     df_id_right = pd.merge(df_id_left, df_id_right, on=id_inter)
-    data_right = pd.merge(df_id_right, data_right, on=id_discrete_right,
-                          how="left")
+    data_right = pd.merge(df_id_right, data_right, on=id_discrete_right, how="left")
     return data_left, data_right
 
 
@@ -456,3 +454,7 @@ def __table_jumps(data, id1, id2, id_discrete):
     ret[id2] = -1
     ret.iloc[:-1, -1] = ret["___t"].iloc[1:].values
     return ret
+
+
+def build_admissible_data(df: pd.DataFrame, id_discrete: iter, id_continuous: iter):
+    pass

@@ -34,7 +34,7 @@ def get_advanced_examples():
              data1=[0.2, 0.2, 0.1, 0.3, 0.2])
     )
     df_right = pd.DataFrame(
-        dict(id=[1, 1, 2, 2, 2],
+        dict(id=[1, 2, 2, 2, 2],
              t1=[5, 10, 0, 100, 120],
              t2=[10, 80, 90, 110, 130],
              data2=[0.2, 0.2, 0.1, 0.3, 0.2])

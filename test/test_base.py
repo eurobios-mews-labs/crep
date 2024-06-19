@@ -52,10 +52,16 @@ def test_fill_stretch(get_examples):
     assert ret["added"].sum() == 2
 
 
-def test__merge(get_examples):
-    df_left, df_right = get_examples
-    df_merge = __merge(df_left.__deepcopy__(), df_right.__deepcopy__(),
-                       id_discrete=["id"], id_continuous=["t1", "t2"])
+def test__merge(get_advanced_examples):
+    df_left, df_right = get_advanced_examples
+
+    df_merge = __merge(df_left, df_right,
+                       id_discrete=["id"],
+                       id_continuous=["t1", "t2"])
+
+
+def test_admissible_data(get_advanced_examples):
+    df_left, df_right = get_advanced_examples
 
 
 def test_check_args(get_examples):
