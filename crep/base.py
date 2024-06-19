@@ -5,7 +5,7 @@
 #     https://cecill.info/
 import numpy as np
 import pandas as pd
-
+from crep.tools import compute_discontinuity
 
 def merge(
         data_left: pd.DataFrame,
@@ -145,8 +145,8 @@ def aggregate_constant(df: pd.DataFrame,
     data_merge.loc[b, f"{id2}_new"] = data_merge.loc[b, id2]
     data_merge.loc[b_disc, f"{id1}_new"] = data_merge.loc[b_disc, id1]
 
-    data_merge[f"{id2}_new"] = data_merge[f"{id2}_new"].fillna(method="bfill")
-    data_merge[f"{id1}_new"] = data_merge[f"{id1}_new"].fillna(method="ffill")
+    data_merge[f"{id2}_new"] = data_merge[f"{id2}_new"].bfill()
+    data_merge[f"{id1}_new"] = data_merge[f"{id1}_new"].ffill()
 
     data_merge = data_merge.drop(list(id_continuous), axis=1)
     data_merge = data_merge.rename({f"{id1}_new": id1, f"{id2}_new": id2},
@@ -273,11 +273,11 @@ def __merge(df_left: pd.DataFrame, df_right: pd.DataFrame,
     df_merge = df_merge.drop([f"{id2}_1", f"{id2}_2"], axis=1)
 
     # Tackle the problem of ending pad when there is discontinuity
-    idx1 = (df_merge[index_left + "_end"].fillna(-1) >= 0).values
+    idx1 = (df_merge[index_left + "_end"].infer_objects(copy=False).fillna(-1) >= 0).values
     is_na_condition = df_merge.loc[:, index_left].isna()
     df_merge.loc[idx1 & is_na_condition, index_left] = -1
 
-    idx2 = (df_merge[index_right + "_end"].fillna(-1) >= 0).values
+    idx2 = (df_merge[index_right + "_end"].infer_objects(copy=False).fillna(-1) >= 0).values
     is_na_condition_2 = df_merge.loc[:, index_right].isna()
     df_merge.loc[idx2 & is_na_condition_2, index_right] = -1
     df_merge = df_merge.drop([index_right + "_end", index_left + "_end"],
@@ -289,7 +289,7 @@ def __merge(df_left: pd.DataFrame, df_right: pd.DataFrame,
     df_merge.loc[discontinuity & df_merge[
         index_right].isna(), index_right] = -1
 
-    df_merge = df_merge.fillna(method='pad').drop("___t", axis=1)
+    df_merge = df_merge.infer_objects(copy=False).ffill().drop("___t", axis=1)
 
     df_merge[[index_right, index_left, id1, id2]] = df_merge[
         [index_right, index_left, id1, id2]].astype(float).fillna(
@@ -325,7 +325,7 @@ def __fill_stretch(df: pd.DataFrame, id_discrete: iter, id_continuous: iter):
         data_add[id1] = data1.iloc[ix__ - 1].loc[:, id2].values
         data_add[id2] = data1.iloc[ix__].loc[:, id1].values
         data_add["added"] = True
-        data1 = pd.concat((data1, data_add))
+        data1 = pd.concat((data1, data_add.dropna(axis=1, how='all')), axis=0)
         data1 = data1[data1[id1] <= data1[id2]]
     return data1.loc[:, col_save]
 
@@ -369,27 +369,6 @@ def suppress_duplicates(df, id_discrete, continuous_index):
     df.iloc[idx_to_agg, i_loc] = df.iloc[idx_to_agg + 1, i_loc].values
     df = df.drop(df.index[idx_to_agg + 1])
     return df
-
-
-def compute_discontinuity(df, id_discrete, id_continuous):
-    """
-    Compute discontinuity in rail segment. The i-th element in return
-    will be True if i-1 and i are discontinuous
-
-    """
-    discontinuity = np.zeros(len(df)).astype(bool)
-    for col in id_discrete:
-        if col in df.columns:
-            discontinuity_temp = np.concatenate(
-                ([False], df[col].values[1:] != df[col].values[:-1]))
-            discontinuity |= discontinuity_temp
-
-    if id_continuous[0] in df.columns and id_continuous[1] in df.columns:
-        discontinuity_temp = np.concatenate(
-            ([False], df[id_continuous[0]].values[1:] != df[id_continuous[
-                1]].values[:-1]))
-        discontinuity |= discontinuity_temp
-    return discontinuity
 
 
 def _increasing_continuous_index(df: pd.DataFrame, id_continuous):
@@ -456,5 +435,3 @@ def __table_jumps(data, id1, id2, id_discrete):
     return ret
 
 
-def build_admissible_data(df: pd.DataFrame, id_discrete: iter, id_continuous: iter):
-    pass

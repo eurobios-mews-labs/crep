@@ -42,3 +42,49 @@ def sample_non_admissible_data(data: pd.DataFrame,
                                id_continuous: iter) -> pd.DataFrame:
     return data[get_overlapping(data, id_discrete,
                                 id_continuous)]
+
+
+def build_admissible_data(df: pd.DataFrame, id_discrete: iter, id_continuous: iter) -> pd.DataFrame:
+    df_non_admissible = sample_non_admissible_data(df, id_discrete, id_continuous).__deepcopy__()
+    all_id_continuous = df_non_admissible[id_continuous[0]].to_list()
+    all_id_continuous += df_non_admissible[id_continuous[1]].to_list()
+
+    df_ret = pd.concat([df_non_admissible[id_discrete]]*2)
+    df_ret[id_continuous[0]] = all_id_continuous
+    df_ret["__disc__"] = compute_discontinuity(df_ret, id_discrete, id_continuous)
+    df_ret = df_ret.sort_values(by=[*id_discrete, id_continuous[0]])
+    df_ret[id_continuous[1]] = - df_ret[id_continuous[0]].diff(periods=-1) + df_ret[id_continuous[0]]
+    df_ret = df_ret.dropna().drop(columns="__disc__")
+
+    df_ret = pd.merge(df_ret,df_non_admissible, on=id_discrete, suffixes=("", "_tmp"))
+    id_continuous_tmp = [str(i) + "_tmp" for i in id_continuous]
+    c = df_ret[id_continuous[0]] < df_ret[id_continuous_tmp[1]]
+    c &= df_ret[id_continuous[1]] > df_ret[id_continuous_tmp[0]]
+
+    df_ret = df_ret.loc[c].drop(columns=id_continuous_tmp)
+    df_ret = df_ret.astype(df_non_admissible.dtypes)
+
+    df_ret_all = df[~get_overlapping(df, id_discrete, id_continuous)]
+    df_ret_all = pd.concat((df_ret_all, df_ret))
+    return df_ret_all
+
+
+def compute_discontinuity(df, id_discrete, id_continuous):
+    """
+    Compute discontinuity in rail segment. The i-th element in return
+    will be True if i-1 and i are discontinuous
+
+    """
+    discontinuity = np.zeros(len(df)).astype(bool)
+    for col in id_discrete:
+        if col in df.columns:
+            discontinuity_temp = np.concatenate(
+                ([False], df[col].values[1:] != df[col].values[:-1]))
+            discontinuity |= discontinuity_temp
+
+    if id_continuous[0] in df.columns and id_continuous[1] in df.columns:
+        discontinuity_temp = np.concatenate(
+            ([False], df[id_continuous[0]].values[1:] != df[id_continuous[
+                1]].values[:-1]))
+        discontinuity |= discontinuity_temp
+    return discontinuity
