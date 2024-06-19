@@ -7,7 +7,8 @@ import numpy as np
 import pandas as pd
 
 from crep import merge, aggregate_constant
-from crep.base import __fill_stretch, __merge, __check_args_merge
+from crep import tools
+from crep.base import __fill_stretch, __merge
 
 
 def test_merge_basic(get_examples):
@@ -52,10 +53,16 @@ def test_fill_stretch(get_examples):
     assert ret["added"].sum() == 2
 
 
-def test__merge(get_examples):
-    df_left, df_right = get_examples
-    df_merge = __merge(df_left.__deepcopy__(), df_right.__deepcopy__(),
-                       id_discrete=["id"], id_continuous=["t1", "t2"])
+def test__merge(get_advanced_examples):
+    df_left, df_right = get_advanced_examples
+
+    df_merge = __merge(df_left, df_right,
+                       id_discrete=["id"],
+                       id_continuous=["t1", "t2"])
+
+
+def test_admissible_data(get_advanced_examples):
+    df_left, df_right = get_advanced_examples
 
 
 def test_check_args(get_examples):
@@ -123,3 +130,24 @@ def test_merge_discrete_id(get_advanced_examples):
                  id_discrete=["id"],
                  how="outer")
     assert len(ret1) > len(ret2)
+
+
+def test_build_admissible_dataset(get_advanced_examples):
+    df_in = get_advanced_examples[1]
+    data = {
+        'id': [1, 2, 2, 3, 2, 2, 2, 2, 3, 3, 3, 3],
+        't1': [5, 100, 120, 30, 0, 10, 10, 80, 10, 20, 20, 25],
+        't2': [10, 110, 130, 35, 10, 80, 80, 90, 20, 25, 25, 30],
+        'data2': [0.2, 0.3, 0.2, 0.1, 0.1, 0.2, 0.1, 0.1, 0.3, 0.3, 0.2, 0.3]
+    }
+
+    # Creating the DataFrame
+    df = pd.DataFrame(data)
+
+    df_out = tools.build_admissible_data(df_in, id_continuous=["t1", "t2"],
+                                         id_discrete=["id"])
+    df_out = df_out.sort_values(by=["id", "t1", "t2"])
+    df = df.sort_values(by=["id", "t1", "t2"])
+
+    assert all(df["data2"].values == df_out["data2"].values)
+
