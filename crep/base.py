@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 from crep.tools import compute_discontinuity
 
+
 def merge(
         data_left: pd.DataFrame,
         data_right: pd.DataFrame,
