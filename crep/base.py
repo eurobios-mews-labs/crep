@@ -90,7 +90,32 @@ def merge(
 
 def unbalanced_merge(data_admissible: pd.DataFrame,
                      data_not_admissible: pd.DataFrame, id_discrete, id_continuous) -> pd.DataFrame:
+    """
+    Merge admissible and non-admissible dataframes based on discrete and continuous identifiers.
 
+    Parameters
+    ----------
+    data_admissible : pd.DataFrame
+        DataFrame containing admissible data.
+    data_not_admissible : pd.DataFrame
+        DataFrame containing non-admissible data.
+    id_discrete : list
+        List of column names representing discrete identifiers.
+    id_continuous : list
+        List of column names representing continuous identifiers.
+
+    Returns
+    -------
+    pd.DataFrame
+        A DataFrame resulting from the unbalanced merge of admissible and non-admissible data.
+
+    Notes
+    -----
+    The function performs the following steps:
+    1. Combines and sorts the admissible and non-admissible data based on the identifiers.
+    2. Resolves overlaps and conflicts between the admissible and non-admissible data.
+    3. Merges and returns the final DataFrame.
+    """
     # assert tools.admissible_dataframe(data_admissible, id_discrete, id_continuous)
     df_idx_w = data_admissible[[*id_discrete, *id_continuous]].copy()
     df_idx_s = data_not_admissible[[*id_discrete, *id_continuous]].copy()
