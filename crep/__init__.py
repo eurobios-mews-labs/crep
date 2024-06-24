@@ -3,4 +3,5 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #     https://cecill.info/
-from crep.base import merge, compute_discontinuity, aggregate_constant
+from crep.base import merge, aggregate_constant, unbalanced_merge
+from tools import compute_discontinuity
