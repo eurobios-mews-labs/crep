@@ -5,6 +5,7 @@
 #     https://cecill.info/
 import numpy as np
 import pandas as pd
+from crep import tools
 
 
 def merge(
@@ -49,8 +50,7 @@ def merge(
     id_discrete = list(id_discrete)
 
     id_discrete_left = [col for col in data_left.columns if col in id_discrete]
-    id_discrete_right = [col for col in data_right.columns if
-                         col in id_discrete]
+    id_discrete_right = [col for col in data_right.columns if col in id_discrete]
     data_left, data_right = __fix_discrete_index(
         data_left, data_right,
         id_discrete_left,
@@ -88,6 +88,96 @@ def merge(
     return df
 
 
+def unbalanced_merge(data_admissible: pd.DataFrame,
+                     data_not_admissible: pd.DataFrame, id_discrete, id_continuous) -> pd.DataFrame:
+    """
+    Merge admissible and non-admissible dataframes based on discrete and continuous identifiers.
+
+    Parameters
+    ----------
+    data_admissible : pd.DataFrame
+        DataFrame containing admissible data.
+    data_not_admissible : pd.DataFrame
+        DataFrame containing non-admissible data.
+    id_discrete : list
+        List of column names representing discrete identifiers.
+    id_continuous : list
+        List of column names representing continuous identifiers.
+
+    Returns
+    -------
+    pd.DataFrame
+        A DataFrame resulting from the unbalanced merge of admissible and non-admissible data.
+
+    Notes
+    -----
+    The function performs the following steps:
+    1. Combines and sorts the admissible and non-admissible data based on the identifiers.
+    2. Resolves overlaps and conflicts between the admissible and non-admissible data.
+    3. Merges and returns the final DataFrame.
+    """
+    # assert tools.admissible_dataframe(data_admissible, id_discrete, id_continuous)
+    df_idx_w = data_admissible[[*id_discrete, *id_continuous]].copy()
+    df_idx_s = data_not_admissible[[*id_discrete, *id_continuous]].copy()
+    df_idx_w["__t__"] = True
+    df_idx_s["__t__"] = False
+
+    df_idx = pd.concat((df_idx_w, df_idx_s))
+    df_idx = df_idx.sort_values([*id_discrete, id_continuous[0], "__t__"],
+                                ascending=[*[True] * len(id_discrete), True, False])
+
+    df_idx["__id2__"] = np.nan
+    df_idx["__id1__"] = np.nan
+    df_idx.loc[df_idx["__t__"], "__id2__"] = df_idx.loc[df_idx["__t__"], id_continuous[1]]
+    df_idx.loc[df_idx["__t__"], "__id1__"] = df_idx.loc[df_idx["__t__"], id_continuous[0]]
+    df_idx["__id2__"] = df_idx["__id2__"].ffill()
+    df_idx["__id1__"] = df_idx["__id1__"].ffill()
+
+    c_resolve = df_idx["__id2__"] < df_idx[id_continuous[1]]
+    c_out = df_idx["__id2__"] < df_idx[id_continuous[0]]
+    created_columns = ["__t__", "__id2__", "__id1__"]
+
+    # =================
+    # Encompassed data
+    df_admissible = df_idx[~c_resolve].copy()
+    df_admissible_ret = pd.merge(df_admissible, data_admissible, how='inner',
+                                 left_on=[*id_discrete, "__id1__", "__id2__"], right_on=[*id_discrete, *id_continuous],
+                                 suffixes=("", "__init"))
+    df_admissible_ret = df_admissible_ret[~df_admissible_ret.__t__]
+    df_admissible_ret = df_admissible_ret.drop(
+        columns=[*created_columns, id_continuous[0] + "__init", id_continuous[1] + "__init"])
+    df_admissible_ret = pd.merge(df_admissible_ret, data_not_admissible, on=[*id_discrete, *id_continuous], how="left")
+
+    # =================
+    # To resolve data
+    df_to_resolve = df_idx[c_resolve & ~c_out].copy()
+    old = [f"{id_continuous[0]}__", f"{id_continuous[1]}__"]
+    df_to_resolve[old] = df_to_resolve[id_continuous]
+    df_to_resolve_admissible = tools.build_admissible_data(df_to_resolve.drop(columns=created_columns), id_discrete,
+                                                     id_continuous)
+
+    df_to_resolve_no_d = df_to_resolve_admissible.drop_duplicates(subset=[*id_discrete, *id_continuous])
+    df_to_resolve_no_d = merge(df_to_resolve_no_d, data_admissible, id_discrete=id_discrete, id_continuous=id_continuous,
+                               how="inner")
+    df_ret = pd.merge(
+        df_to_resolve_no_d,
+        data_not_admissible,
+        left_on=[*id_discrete, *old],
+        right_on=[*id_discrete, *id_continuous], how="inner", suffixes=("", "__")
+    )
+    df_ret = df_ret[df_admissible_ret.columns]
+
+    # =================
+    # Out data
+    df_to_out = df_idx[c_resolve & c_out].copy().drop(columns=created_columns)
+    df_to_out = pd.merge(df_to_out, data_not_admissible, on=[*id_discrete, *id_continuous], how='inner')
+
+    df_ret_all = pd.concat((df_ret, df_admissible_ret, df_to_out), axis=0)
+    df_ret_all.index = range(len(df_ret_all))
+    df_ret_all = df_ret_all.sort_values(by=[*id_discrete, *id_continuous])
+    return df_ret_all
+
+
 def aggregate_constant(df: pd.DataFrame,
                        id_discrete: iter,
                        id_continuous: iter,
@@ -112,7 +202,7 @@ def aggregate_constant(df: pd.DataFrame,
     no_index = list(set(data_.columns).difference(indexes))
     id1, id2 = id_continuous
 
-    disc = compute_discontinuity(data_, id_discrete, id_continuous)
+    disc = tools.compute_discontinuity(data_, id_discrete, id_continuous)
     identical = False * np.ones_like(disc)
 
     index = data_.index
@@ -146,8 +236,8 @@ def aggregate_constant(df: pd.DataFrame,
     data_merge.loc[b, f"{id2}_new"] = data_merge.loc[b, id2]
     data_merge.loc[b_disc, f"{id1}_new"] = data_merge.loc[b_disc, id1]
 
-    data_merge[f"{id2}_new"] = data_merge[f"{id2}_new"].fillna(method="bfill")
-    data_merge[f"{id1}_new"] = data_merge[f"{id1}_new"].fillna(method="ffill")
+    data_merge[f"{id2}_new"] = data_merge[f"{id2}_new"].bfill()
+    data_merge[f"{id1}_new"] = data_merge[f"{id1}_new"].ffill()
 
     data_merge = data_merge.drop(list(id_continuous), axis=1)
     data_merge = data_merge.rename({f"{id1}_new": id1, f"{id2}_new": id2},
@@ -218,15 +308,15 @@ def __merge_event(
     return df_merge
 
 
-def __merge(data_left, data_right,
-            id_discrete,
+def __merge(df_left: pd.DataFrame, df_right: pd.DataFrame,
+            id_discrete: iter,
             id_continuous,
             names=("left", "right")):
     index = [*id_discrete, *id_continuous]
 
     df_id1, df_id2, index_left, index_right = __refactor_data(
-        data_left,
-        data_right, id_continuous, id_discrete,
+        df_left,
+        df_right, id_continuous, id_discrete,
         names=names)
     df_id1_stretched = __fill_stretch(
         df_id1, id_discrete=id_discrete,
@@ -274,23 +364,23 @@ def __merge(data_left, data_right,
     df_merge = df_merge.drop([f"{id2}_1", f"{id2}_2"], axis=1)
 
     # Tackle the problem of ending pad when there is discontinuity
-    idx1 = (df_merge[index_left + "_end"].fillna(-1) >= 0).values
+    idx1 = (df_merge[index_left + "_end"].infer_objects(copy=False).fillna(-1) >= 0).values
     is_na_condition = df_merge.loc[:, index_left].isna()
     df_merge.loc[idx1 & is_na_condition, index_left] = -1
 
-    idx2 = (df_merge[index_right + "_end"].fillna(-1) >= 0).values
+    idx2 = (df_merge[index_right + "_end"].infer_objects(copy=False).fillna(-1) >= 0).values
     is_na_condition_2 = df_merge.loc[:, index_right].isna()
     df_merge.loc[idx2 & is_na_condition_2, index_right] = -1
     df_merge = df_merge.drop([index_right + "_end", index_left + "_end"],
                              axis=1)
 
-    discontinuity = compute_discontinuity(df_merge, id_discrete, id_continuous)
+    discontinuity = tools.compute_discontinuity(df_merge, id_discrete, id_continuous)
     df_merge.loc[discontinuity & df_merge[
         index_left].isna(), index_left] = -1
     df_merge.loc[discontinuity & df_merge[
         index_right].isna(), index_right] = -1
 
-    df_merge = df_merge.fillna(method='pad').drop("___t", axis=1)
+    df_merge = df_merge.infer_objects(copy=False).ffill().drop("___t", axis=1)
 
     df_merge[[index_right, index_left, id1, id2]] = df_merge[
         [index_right, index_left, id1, id2]].astype(float).fillna(
@@ -313,7 +403,7 @@ def __fill_stretch(df: pd.DataFrame, id_discrete: iter, id_continuous: iter):
     data1["added"] = False
     col_save = np.array(data1.columns)
     index = [*id_discrete, *id_continuous]
-    data1["discontinuity"] = compute_discontinuity(data1, id_discrete,
+    data1["discontinuity"] = tools.compute_discontinuity(data1, id_discrete,
                                                    id_continuous)
     ix__ = np.where(data1["discontinuity"].values)[0]
     if data1["discontinuity"].sum() == 0:
@@ -326,7 +416,7 @@ def __fill_stretch(df: pd.DataFrame, id_discrete: iter, id_continuous: iter):
         data_add[id1] = data1.iloc[ix__ - 1].loc[:, id2].values
         data_add[id2] = data1.iloc[ix__].loc[:, id1].values
         data_add["added"] = True
-        data1 = pd.concat((data1, data_add))
+        data1 = pd.concat((data1, data_add.dropna(axis=1, how='all')), axis=0)
         data1 = data1[data1[id1] < data1[id2]]
     return data1.loc[:, col_save]
 
@@ -348,8 +438,7 @@ def __fix_discrete_index(
     id_inter = [id_ for id_ in id_discrete_right if id_ in id_discrete_left]
     id_inter = list(id_inter)
     df_id_right = pd.merge(df_id_left, df_id_right, on=id_inter)
-    data_right = pd.merge(df_id_right, data_right, on=id_discrete_right,
-                          how="left")
+    data_right = pd.merge(df_id_right, data_right, on=id_discrete_right, how="left")
     return data_left, data_right
 
 
@@ -371,27 +460,6 @@ def suppress_duplicates(df, id_discrete, continuous_index):
     df.iloc[idx_to_agg, i_loc] = df.iloc[idx_to_agg + 1, i_loc].values
     df = df.drop(df.index[idx_to_agg + 1])
     return df
-
-
-def compute_discontinuity(df, id_discrete, id_continuous):
-    """
-    Compute discontinuity in rail segment. The i-th element in return
-    will be True if i-1 and i are discontinuous
-
-    """
-    discontinuity = np.zeros(len(df)).astype(bool)
-    for col in id_discrete:
-        if col in df.columns:
-            discontinuity_temp = np.concatenate(
-                ([False], df[col].values[1:] != df[col].values[:-1]))
-            discontinuity |= discontinuity_temp
-
-    if id_continuous[0] in df.columns and id_continuous[1] in df.columns:
-        discontinuity_temp = np.concatenate(
-            ([False], df[id_continuous[0]].values[1:] != df[id_continuous[
-                1]].values[:-1]))
-        discontinuity |= discontinuity_temp
-    return discontinuity
 
 
 def _increasing_continuous_index(df: pd.DataFrame, id_continuous):
@@ -456,3 +524,5 @@ def __table_jumps(data, id1, id2, id_discrete):
     ret[id2] = -1
     ret.iloc[:-1, -1] = ret["___t"].iloc[1:].values
     return ret
+
+
