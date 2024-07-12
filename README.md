@@ -2,7 +2,7 @@
 [![pytest](https://github.com/eurobios-scb/crep/actions/workflows/pytest.yml/badge.svg?event=push)](https://docs.pytest.org)
 
 ```python
-pip install git+https://github.com/eurobios-mews-labs/crep
+pip install crep
 ``` 
 
 This simple module aims at providing some function to tackle tabular 
