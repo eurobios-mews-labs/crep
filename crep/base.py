@@ -417,7 +417,7 @@ def __fill_stretch(df: pd.DataFrame, id_discrete: iter, id_continuous: iter):
         data_add[id2] = data1.iloc[ix__].loc[:, id1].values
         data_add["added"] = True
         data1 = pd.concat((data1, data_add.dropna(axis=1, how='all')), axis=0)
-        data1 = data1[data1[id1] <= data1[id2]]
+        data1 = data1[data1[id1] < data1[id2]]
     return data1.loc[:, col_save]
 
 

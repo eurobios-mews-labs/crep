@@ -36,6 +36,7 @@ def test_merge_basic(get_examples):
              data1=[0.2, 0.2, 0.2, 0.2, 0.1, 0.3, 0.2],
              data2=[np.nan, 0.2, 0.2, np.nan, 0.1, 0.3, 0.2],
              ))
+    ret_th = ret_th.astype(ret.dtypes)
     ret_i_th = ret_th.dropna()
     ret_i_th.index = range(ret_i_th.__len__())
     assert ret.equals(ret_th)
