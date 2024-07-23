@@ -5,8 +5,9 @@
 #     https://cecill.info/
 import numpy as np
 import pandas as pd
+import pytest
 
-from crep import merge, aggregate_constant
+from crep import merge, aggregate_constant, unbalanced_merge
 from crep import tools
 from crep.base import __fill_stretch, __merge
 
@@ -152,3 +153,33 @@ def test_build_admissible_dataset(get_advanced_examples):
 
     assert all(df["data2"].values == df_out["data2"].values)
 
+
+def test_unbalanced_merge(get_advanced_examples):
+    df_left, df_right = get_advanced_examples
+    df_ret = unbalanced_merge(df_left, df_right,
+                              id_discrete=["id"],
+                              id_continuous=["t1", "t2"])
+
+
+def test_merge_how(get_advanced_examples):
+    data_left, data_right = get_advanced_examples
+    with pytest.raises(Exception) as exc_info:
+        merge(data_left, data_right,
+              id_continuous=["t1", "t2"],
+              id_discrete=["id", "id2"],
+              how="fsdfjs")
+    assert exc_info.value.args[0] == 'How must be in "left", "right", "inner", "outer"'
+
+    with pytest.raises(Exception) as exc_info:
+        merge(data_left, data_right,
+              id_continuous=["t1", "t2", "id"],
+              id_discrete=["id", "id2"],
+              how="fsdfjs")
+    assert exc_info.value.args[0] == "Only two continuous index is possible"
+
+    with pytest.raises(Exception) as exc_info:
+        merge(data_left, data_right,
+              id_continuous=["t1", "t2", "t3"],
+              id_discrete=["id", "id2"],
+              how="fsdfjs")
+    assert exc_info.value.args[0] == "t3 is not in columns"
