@@ -5,18 +5,19 @@
 #     https://cecill.info/
 
 import pandas as pd
+import numpy as np
 
 from crep.tools import get_overlapping, admissible_dataframe, sample_non_admissible_data, create_zones, \
     build_admissible_data
 
 id_discrete, id_continuous = ["id", "id2"], ["t1", "t2"]
 data = {
-    'id': [1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2],
-    'id2': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    't1': [932, 996, 2395, 2395, 3033, 3628, 4126, 4140, 4154, 63, 63, 271, 271],
-    't2': [2395, 2324, 3033, 3628, 3035, 4140, 4140, 5508, 5354, 199, 199, 351, 357],
-    'LONGUEUR': [1463, 1328, 638, 1233, 2, 512, 14, 1368, 1200, 136, 208, 935, 1086],
-    '__zone__': [0, 0, 1, 1, 1, 2, 2, 2, 2, 3, 3, 4, 4]
+    'id': [1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, np.nan],
+    'id2': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    't1': [932, 996, 2395, 2395, 3033, 3628, 4126, 4140, 4154, 63, 63, 271, 271, np.nan],
+    't2': [2395, 2324, 3033, 3628, 3035, 4140, 4140, 5508, 5354, 199, 199, 351, 357, np.nan],
+    'LONGUEUR': [1463, 1328, 638, 1233, 2, 512, 14, 1368, 1200, 136, 208, 935, 1086, np.nan],
+    '__zone__': [0, 0, 1, 1, 1, 2, 2, 2, 2, 3, 3, 4, 4, 5]
 }
 data = pd.DataFrame(data).sort_values(by=[*id_discrete, *id_continuous])
 

@@ -93,28 +93,27 @@ def create_zones(df: pd.DataFrame, id_discrete: iter, id_continuous: iter):
     >>> df = pd.DataFrame(df)
     >>> create_zones(df, ['id'], ['t1', 't2'])
     """
+    df_out = df.__deepcopy__()
     if "__zone__" in df.columns:
-        df = df.drop(columns='__zone__')
-    df_idx = df[[*id_discrete, *id_continuous]]
-    df_idx = df_idx.sort_values([*id_discrete, id_continuous[1]])
-    df_idx["__zf__"] = range(len(df_idx))
-    df_idx = df_idx.sort_values([*id_discrete, id_continuous[0]])
-    df_idx["__zi__"] = range(len(df_idx))
-    c_zone = (df_idx["__zf__"] - df_idx["__zi__"]) == 0
+        df_out = df_out.drop(columns='__zone__')
 
-    df_idx["__id2_prev__"] = df[id_continuous[1]]
-    df_idx.loc[df_idx.index[1:], "__id2_prev__"] = df_idx.loc[df_idx.index[:-1], id_continuous[1]].values
-    c_inner = df_idx[id_continuous[0]] >= df_idx["__id2_prev__"]
+    df_out = df_out.sort_values([*id_discrete, id_continuous[1]])
+    df_out["__zf__"] = range(len(df_out))
+    df_out = df_out.sort_values([*id_discrete, id_continuous[0]])
+    df_out["__zi__"] = range(len(df_out))
+    c_zone = (df_out["__zf__"] - df_out["__zi__"]) == 0
 
-    c_disc = df_idx[id_discrete].iloc[1:].values == df_idx[id_discrete].iloc[:-1].values
+    df_out["__id2_prev__"] = df[id_continuous[1]]
+    df_out.loc[df_out.index[1:], "__id2_prev__"] = df_out.loc[df_out.index[:-1], id_continuous[1]].values
+    c_inner = df_out[id_continuous[0]] >= df_out["__id2_prev__"]
+
+    c_disc = df_out[id_discrete].iloc[1:].values == df_out[id_discrete].iloc[:-1].values
     c_disc = c_disc.mean(axis=1) == 1
     c_disc = ~ np.concatenate(([True], c_disc))
 
-    df_idx["__zone__"] = (c_zone & c_inner) | c_disc
-    df_idx["__zone__"] = df_idx["__zone__"].cumsum()
-    df_out = pd.merge(df, df_idx.drop(columns=["__zi__", "__zf__", '__id2_prev__']).drop_duplicates(),
-                      on=[*id_discrete, *id_continuous], how="left")
-    df_out.index = df.index
+    df_out["__zone__"] = (c_zone & c_inner) | c_disc
+    df_out["__zone__"] = df_out["__zone__"].cumsum()
+
     return df_out.loc[df.index, [*df.columns.to_list(), "__zone__"]]
 
 
