@@ -79,7 +79,6 @@ def create_zones(df: pd.DataFrame, id_discrete: iter, id_continuous: iter):
     6. Check if the start of a zone is greater than or equal to the end of the previous zone (`c_inner`).
     7. Identify changes in discrete identifiers (`c_disc`).
     8. Combine the conditions to create the final zone identifier (`__zone__`).
-    9. Merge the zone information back into the original DataFrame.
 
     Examples
     --------

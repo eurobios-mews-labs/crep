@@ -154,19 +154,23 @@ def unbalanced_merge(data_admissible: pd.DataFrame,
     old = [f"{id_continuous[0]}__", f"{id_continuous[1]}__"]
     df_to_resolve[old] = df_to_resolve[id_continuous]
     df_to_resolve_admissible = tools.build_admissible_data(df_to_resolve.drop(columns=created_columns), id_discrete,
-                                                     id_continuous)
+                                                           id_continuous)
 
     df_to_resolve_no_d = df_to_resolve_admissible.drop_duplicates(subset=[*id_discrete, *id_continuous])
-    df_to_resolve_no_d = merge(df_to_resolve_no_d, data_admissible, id_discrete=id_discrete, id_continuous=id_continuous,
-                               how="inner")
-    df_ret = pd.merge(
-        df_to_resolve_no_d,
-        data_not_admissible,
-        left_on=[*id_discrete, *old],
-        right_on=[*id_discrete, *id_continuous], how="inner", suffixes=("", "__")
-    )
-    df_ret = df_ret[df_admissible_ret.columns]
-
+    if len(df_to_resolve_no_d) > 0:
+        df_to_resolve_no_d = merge(
+            df_to_resolve_no_d,
+            data_admissible, id_discrete=id_discrete, id_continuous=id_continuous,
+            how="inner")
+        df_ret = pd.merge(
+            df_to_resolve_no_d,
+            data_not_admissible,
+            left_on=[*id_discrete, *old],
+            right_on=[*id_discrete, *id_continuous], how="inner", suffixes=("", "__")
+        )
+        df_ret = df_ret[df_admissible_ret.columns]
+    else:
+        df_ret = pd.DataFrame([], columns=df_admissible_ret.columns)
     # =================
     # Out data
     df_to_out = df_idx[c_resolve & c_out].copy().drop(columns=created_columns)
@@ -518,6 +522,8 @@ def __table_jumps(data, id1, id2, id_discrete):
     ret = pd.concat((df_unique_end, df_unique_start),
                     sort=False).sort_values(
         by=[*id_discrete, "___t"]).drop_duplicates()
+    if len(ret) == 0:
+        return ret
     ret.index = range(ret.shape[0])
     ret[id1] = -1
     ret.iloc[:-1, -1] = ret["___t"].iloc[:-1].values
