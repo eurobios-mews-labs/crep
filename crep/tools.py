@@ -6,8 +6,14 @@
 import numpy as np
 import pandas as pd
 
+from typing import Any, Iterable
 
-def build_admissible_data(df: pd.DataFrame, id_discrete: iter, id_continuous: iter) -> pd.DataFrame:
+
+def build_admissible_data(
+        df: pd.DataFrame,
+        id_discrete: Iterable[Any],
+        id_continuous: [Any, Any]
+) -> pd.DataFrame:
     df.index = range(len(df.index))
     df_non_admissible = sample_non_admissible_data(df, id_discrete, id_continuous).__deepcopy__()
     df_non_admissible = create_zones(df_non_admissible, id_discrete, id_continuous)
@@ -47,7 +53,11 @@ def build_admissible_data(df: pd.DataFrame, id_discrete: iter, id_continuous: it
     return df_ret_all
 
 
-def create_zones(df: pd.DataFrame, id_discrete: iter, id_continuous: iter):
+def create_zones(
+        df: pd.DataFrame,
+        id_discrete: Iterable[Any],
+        id_continuous: [Any, Any]
+):
     """
     Create overlapping zone identifiers in the DataFrame based on discrete and continuous ID columns.
 
@@ -117,28 +127,35 @@ def create_zones(df: pd.DataFrame, id_discrete: iter, id_continuous: iter):
 
 
 def get_overlapping(df: pd.DataFrame,
-                    id_discrete: iter,
-                    id_continuous: iter) -> pd.Series:
+                    id_discrete: Iterable[Any],
+                    id_continuous: [Any, Any]
+                    ) -> pd.Series:
     df = create_zones(df, id_discrete, id_continuous)
     overlap = df["__zone__"].duplicated(keep=False)
     return overlap
 
 
 def admissible_dataframe(data: pd.DataFrame,
-                         id_discrete: iter,
-                         id_continuous: iter):
+                         id_discrete: Iterable[Any],
+                         id_continuous: [Any, Any]
+                         ):
     return sum(get_overlapping(data, id_discrete,
                                id_continuous)) == 0
 
 
 def sample_non_admissible_data(data: pd.DataFrame,
-                               id_discrete: iter,
-                               id_continuous: iter) -> pd.DataFrame:
+                               id_discrete: Iterable[Any],
+                               id_continuous: [Any, Any]
+                               ) -> pd.DataFrame:
     return data[get_overlapping(data, id_discrete,
                                 id_continuous)]
 
 
-def compute_discontinuity(df, id_discrete, id_continuous):
+def compute_discontinuity(
+        df,
+        id_discrete: Iterable[Any],
+        id_continuous: [Any, Any]
+):
     """
     Compute discontinuity in rail segment. The i-th element in return
     will be True if i-1 and i are discontinuous
@@ -157,3 +174,30 @@ def compute_discontinuity(df, id_discrete, id_continuous):
                 1]].values[:-1]))
         discontinuity |= discontinuity_temp
     return discontinuity
+
+
+def create_continuity(
+        df: pd.DataFrame,
+        id_discrete: Iterable[Any],
+        id_continuous: [Any, Any],
+        limit=None, sort=False
+) -> pd.DataFrame:
+    df_in = df.__deepcopy__()
+    col_save = np.array(df_in.columns)
+    index = [*id_discrete, *id_continuous]
+    df_in["discontinuity"] = compute_discontinuity(df_in, id_discrete, id_continuous)
+    if df_in["discontinuity"].sum() == 0:
+        return df
+    else:
+        ix__ = np.where(df_in["discontinuity"].values)[0]
+        df_add = pd.DataFrame(columns=df_in.columns, index=range(len(ix__)))
+        df_add[index] = df_in.iloc[ix__][index].values
+        df_add[id_continuous[0]] = df_in.iloc[ix__ - 1].loc[:, id_continuous[1]].values
+        df_add[id_continuous[1]] = df_in.iloc[ix__].loc[:, id_continuous[0]].values
+        if limit is not None:
+            df_add = df_add[(df_add[id_continuous[1]] - df_add[id_continuous[0]]) < limit]
+        df_in = pd.concat((df_in, df_add.dropna(axis=1, how='all')), axis=0)
+        df_in = df_in[df_in[id_continuous[0]] < df_in[id_continuous[1]]]
+    if sort:
+        df_in = df_in.sort_values([*id_discrete, *id_continuous])
+    return df_in.loc[:, col_save]

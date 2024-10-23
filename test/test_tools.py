@@ -7,8 +7,7 @@
 import pandas as pd
 import numpy as np
 
-from crep.tools import get_overlapping, admissible_dataframe, sample_non_admissible_data, create_zones, \
-    build_admissible_data
+from crep import tools
 
 id_discrete, id_continuous = ["id", "id2"], ["t1", "t2"]
 data = {
@@ -23,53 +22,65 @@ data = pd.DataFrame(data).sort_values(by=[*id_discrete, *id_continuous])
 
 
 def test_no_overlapping(get_examples):
-    assert sum(get_overlapping(
+    assert sum(tools.get_overlapping(
         get_examples[0], ["id"], ["t1", "t2"]
     )) == 0
-    assert admissible_dataframe(get_examples[0], ["id"], id_continuous)
+    assert tools.admissible_dataframe(get_examples[0], ["id"], id_continuous)
 
 
 def test_overlapping(get_examples):
     df = get_examples[0]
     df.loc[1, "t1"] = 5
-    ret = get_overlapping(df, ["id"], id_continuous)
+    ret = tools.get_overlapping(df, ["id"], id_continuous)
     assert sum(ret) == 2
 
 
 def test_sample_overlapping(get_examples):
     df = get_examples[0]
     df.loc[1, "t1"] = 5
-    ret = sample_non_admissible_data(df, ["id"], id_continuous)
+    ret = tools.sample_non_admissible_data(df, ["id"], id_continuous)
     assert ret.equals(df.loc[[0, 1]])
 
 
 def test_create_zones():
     df = data.sort_values(by=[*id_discrete, *id_continuous])
-    df_out = create_zones(df.drop(columns="__zone__"), id_discrete=id_discrete, id_continuous=id_continuous)
+    df_out = tools.create_zones(df.drop(columns="__zone__"), id_discrete=id_discrete, id_continuous=id_continuous)
     df_out = df_out.sort_values(by=[*id_discrete, *id_continuous])
     assert all(df_out["__zone__"].values == df["__zone__"].values)
 
 
 def test_build_admissible_data_frame():
-    ret = build_admissible_data(df=data.drop(columns="__zone__"), id_discrete=id_discrete, id_continuous=id_continuous)
+    ret = tools.build_admissible_data(df=data.drop(columns="__zone__"), id_discrete=id_discrete,
+                                      id_continuous=id_continuous)
     ret = ret.drop_duplicates(subset=[*id_discrete, *id_continuous])
 
-    assert admissible_dataframe(ret, id_discrete=id_discrete, id_continuous=id_continuous)
+    assert tools.admissible_dataframe(ret, id_discrete=id_discrete, id_continuous=id_continuous)
 
 
 def test_fix_point_non_admissible(get_examples):
-
-    df_non_admissible = sample_non_admissible_data(data, id_discrete, id_continuous)
-    df_non_admissible_2 = sample_non_admissible_data(df_non_admissible, id_discrete, id_continuous)
-
-    assert df_non_admissible.equals(df_non_admissible_2)
-
-    df_non_admissible = sample_non_admissible_data(get_examples[0], ['id'], id_continuous)
-    df_non_admissible_2 = sample_non_admissible_data(df_non_admissible, ['id'], id_continuous)
+    df_non_admissible = tools.sample_non_admissible_data(data, id_discrete, id_continuous)
+    df_non_admissible_2 = tools.sample_non_admissible_data(df_non_admissible, id_discrete, id_continuous)
 
     assert df_non_admissible.equals(df_non_admissible_2)
 
-    df_non_admissible = sample_non_admissible_data(get_examples[1], ['id'], id_continuous)
-    df_non_admissible_2 = sample_non_admissible_data(df_non_admissible, ['id'], id_continuous)
+    df_non_admissible = tools.sample_non_admissible_data(get_examples[0], ['id'], id_continuous)
+    df_non_admissible_2 = tools.sample_non_admissible_data(df_non_admissible, ['id'], id_continuous)
 
     assert df_non_admissible.equals(df_non_admissible_2)
+
+    df_non_admissible = tools.sample_non_admissible_data(get_examples[1], ['id'], id_continuous)
+    df_non_admissible_2 = tools.sample_non_admissible_data(df_non_admissible, ['id'], id_continuous)
+
+    assert df_non_admissible.equals(df_non_admissible_2)
+
+
+def test_create_continuity(get_examples):
+    df_left, df_right = get_examples
+    df = tools.create_continuity(df_left, id_discrete=["id"], id_continuous=["t1", "t2"], sort=True)
+    assert len(df_left) + 2 == len(df)
+    assert df.isna().sum().sum() > 0
+    df2 = tools.create_continuity(df, id_discrete=["id"], id_continuous=["t1", "t2"], sort=True)
+    assert len(df2) == len(df)
+    df3 = tools.create_continuity(df_left, id_discrete=["id"], id_continuous=["t1", "t2"], sort=True, limit=5)
+    assert len(df_left) == len(df3)
+

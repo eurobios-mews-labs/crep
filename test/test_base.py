@@ -9,7 +9,7 @@ import pytest
 
 from crep import merge, aggregate_constant, unbalanced_merge
 from crep import tools
-from crep.base import __fill_stretch, __merge
+from crep.base import __merge, merge_event
 
 
 def test_merge_basic(get_examples):
@@ -44,15 +44,6 @@ def test_merge_basic(get_examples):
     assert ret_l.equals(ret_th)
     assert ret_i.equals(ret_i_th)
     assert ret_r.equals(ret_i_th)
-
-
-def test_fill_stretch(get_examples):
-    dfl, _ = get_examples
-    ret = __fill_stretch(dfl.__deepcopy__(),
-                         id_continuous=["t1", "t2"],
-                         id_discrete=["id"],
-                         )
-    assert ret["added"].sum() == 2
 
 
 def test__merge(get_advanced_examples):
@@ -155,6 +146,7 @@ def test_build_admissible_dataset(get_advanced_examples):
 
 
 def test_unbalanced_merge(get_advanced_examples):
+    # FIXME correct this
     df_left, df_right = get_advanced_examples
     df_ret = unbalanced_merge(df_left, df_right,
                               id_discrete=["id"],
@@ -183,3 +175,10 @@ def test_merge_how(get_advanced_examples):
               id_discrete=["id", "id2"],
               how="fsdfjs")
     assert exc_info.value.args[0] == "t3 is not in columns"
+
+
+def test_merge_event(get_examples):
+    df_left, df_right = get_examples
+    merge_event(data_left=df_left, data_right=df_right, id_discrete=["id"],
+                id_continuous=["t1", "t2"],
+                )

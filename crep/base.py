@@ -7,12 +7,15 @@ import numpy as np
 import pandas as pd
 from crep import tools
 
+from typing import Any
+
 
 def merge(
         data_left: pd.DataFrame,
         data_right: pd.DataFrame,
-        id_continuous: iter,
-        id_discrete: iter, how: str,
+        id_continuous: [Any, Any],
+        id_discrete: iter,
+        how: str,
         remove_duplicates: bool = False,
         verbose=False) -> pd.DataFrame:
     """
@@ -27,9 +30,9 @@ def merge(
         data frame with continuous representation
     id_continuous
         iterable of length two that delimits the edges of the segment
-    id_discrete
+    id_discrete: iterable
         iterable that lists all the columns on which to perform a classic merge
-    how
+    how: str
         how to make the merge, possible options are
 
         - 'left'
@@ -88,8 +91,9 @@ def merge(
     return df
 
 
-def unbalanced_merge(data_admissible: pd.DataFrame,
-                     data_not_admissible: pd.DataFrame, id_discrete, id_continuous) -> pd.DataFrame:
+def unbalanced_merge(
+        data_admissible: pd.DataFrame,
+        data_not_admissible: pd.DataFrame, id_discrete:iter, id_continuous:[Any, Any]) -> pd.DataFrame:
     """
     Merge admissible and non-admissible dataframes based on discrete and continuous identifiers.
 
@@ -268,9 +272,8 @@ def __merge_index(data_left, data_right,
         data_left.loc[:, id_c] = data_left.loc[:, id_c].astype(int)
 
         data_right = data_right.loc[:, [*id_discrete, "pk"]]
-        df_merge = __merge_event(data_left, data_right,
-                                 id_discrete=id_discrete,
-                                 id_continuous=id_c, names=names)
+        raise AssertionError(
+            "[merge] This functionality is not yet implemented")
     else:
         data_left = data_left.loc[:, id_].dropna()
         data_right = data_right.loc[:, id_].dropna()
@@ -279,36 +282,27 @@ def __merge_index(data_left, data_right,
     return df_merge
 
 
-def __merge_event(
-        data_left, data_right,
-        id_discrete,
-        id_continuous,
-        names=("left", "right")):
-    data_left_ = data_left.iloc[:, :]
-    data_right_ = data_right.iloc[:, :]
+def merge_event(
+        data_left: pd.DataFrame, data_right: pd.DataFrame,
+        id_discrete: iter,
+        id_continuous: [Any, Any],
+):
+    data_left_ = data_left.__deepcopy__()
+    data_right_ = data_right.__deepcopy__()
     data_left_ = _increasing_continuous_index(data_left_, id_continuous)
 
-    index_right = names[1] + "_idx"
-    index_left = names[0] + "_idx"
-    data_left_.index.name = index_left
-    data_right_.index.name = index_right
     data_left_ = data_left_.reset_index()
     data_right_ = data_right_.reset_index()
 
-    id_ = [index_left, *id_discrete, *id_continuous]
-    data_left_[index_right] = np.nan
     all_columns = list(set(data_left_.columns).union(data_right_.columns))
     df_merge = data_left_.reindex(columns=all_columns)
     df_merge["__t"] = df_merge[id_continuous[0]]
     data_right_ = data_right_.reindex(columns=all_columns)
     df_merge = pd.concat((df_merge, data_right_), axis=0).sort_values(
         [*id_discrete, "__t"])
-    df_merge[id_] = df_merge[id_].fillna(method='pad')
-    df_merge = df_merge[~df_merge[index_right].isna()]
-    df_merge = df_merge.dropna()
-    df_merge["__t"] = df_merge["__t"].fillna(-1).astype(int)
-    del data_right_
-    del data_left_
+    df_merge[data_left_.columns] = df_merge[data_left_.columns].ffill()
+
+    df_merge.dropna()
     return df_merge
 
 
@@ -322,10 +316,10 @@ def __merge(df_left: pd.DataFrame, df_right: pd.DataFrame,
         df_left,
         df_right, id_continuous, id_discrete,
         names=names)
-    df_id1_stretched = __fill_stretch(
+    df_id1_stretched = tools.create_continuity(
         df_id1, id_discrete=id_discrete,
         id_continuous=id_continuous)
-    df_id2_stretched = __fill_stretch(
+    df_id2_stretched = tools.create_continuity(
         df_id2, id_discrete=id_discrete,
         id_continuous=id_continuous)
 
@@ -400,29 +394,6 @@ def is_event(data, id_continuous: iter):
     if id_continuous[0] in data.columns and id_continuous[1] in data.columns:
         return False
     return True
-
-
-def __fill_stretch(df: pd.DataFrame, id_discrete: iter, id_continuous: iter):
-    data1 = df.__deepcopy__()
-    data1["added"] = False
-    col_save = np.array(data1.columns)
-    index = [*id_discrete, *id_continuous]
-    data1["discontinuity"] = tools.compute_discontinuity(data1, id_discrete,
-                                                   id_continuous)
-    ix__ = np.where(data1["discontinuity"].values)[0]
-    if data1["discontinuity"].sum() == 0:
-        return data1.loc[:, col_save]
-    else:
-        id1 = id_continuous[0]
-        id2 = id_continuous[1]
-        data_add = pd.DataFrame(columns=data1.columns, index=range(len(ix__)))
-        data_add[index] = data1.iloc[ix__][index].values
-        data_add[id1] = data1.iloc[ix__ - 1].loc[:, id2].values
-        data_add[id2] = data1.iloc[ix__].loc[:, id1].values
-        data_add["added"] = True
-        data1 = pd.concat((data1, data_add.dropna(axis=1, how='all')), axis=0)
-        data1 = data1[data1[id1] < data1[id2]]
-    return data1.loc[:, col_save]
 
 
 def __fix_discrete_index(
@@ -530,5 +501,3 @@ def __table_jumps(data, id1, id2, id_discrete):
     ret[id2] = -1
     ret.iloc[:-1, -1] = ret["___t"].iloc[1:].values
     return ret
-
-
