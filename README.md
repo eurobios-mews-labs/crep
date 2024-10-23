@@ -1,6 +1,6 @@
 # Tabular data processing for Continuous REPresentation
 [![pytest](https://github.com/eurobios-scb/crep/actions/workflows/pytest.yml/badge.svg?event=push)](https://docs.pytest.org)
-
+![code coverage](https://raw.githubusercontent.com/eurobios-mews-labs/crep/coverage-badge/coverage.svg?raw=true)
 ```python
 pip install crep
 ``` 
