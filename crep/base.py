@@ -93,7 +93,7 @@ def merge(
 
 def unbalanced_merge(
         data_admissible: pd.DataFrame,
-        data_not_admissible: pd.DataFrame, id_discrete:iter, id_continuous:[Any, Any]) -> pd.DataFrame:
+        data_not_admissible: pd.DataFrame, id_discrete: iter, id_continuous: [Any, Any]) -> pd.DataFrame:
     """
     Merge admissible and non-admissible dataframes based on discrete and continuous identifiers.
 
@@ -287,6 +287,32 @@ def merge_event(
         id_discrete: iter,
         id_continuous: [Any, Any],
 ):
+    """
+    Merges two dataframes on both discrete and continuous indices, with forward-filling of missing data.
+
+    This function merges two Pandas DataFrames (`data_left` and `data_right`) based on discrete and continuous keys.
+    It creates a deep copy of the dataframes, reindexes their columns to match, and concatenates them along the rowaxis.
+    The merged dataframe is sorted based on the discrete and continuous index columns, and missing values in the left dataframe
+    are forward-filled.
+
+    Parameters
+    ----------
+    data_left : pd.DataFrame
+        The left dataframe to be merged.
+    data_right : pd.DataFrame
+        The right dataframe to be merged.
+    id_discrete : iterable
+        The list of column names representing discrete identifiers for sorting and merging (e.g., categorical variables).
+    id_continuous : list of two elements (Any, Any)
+        A list with two elements representing the continuous index (e.g., time or numerical variables).
+        The first element is the column name of the continuous identifier used for sorting.
+
+    Returns
+    -------
+    pd.DataFrame
+        A merged dataframe that combines `data_left` and `data_right`.
+
+    """
     data_left_ = data_left.__deepcopy__()
     data_right_ = data_right.__deepcopy__()
     data_left_ = _increasing_continuous_index(data_left_, id_continuous)
@@ -304,6 +330,50 @@ def merge_event(
 
     df_merge.dropna()
     return df_merge
+
+
+def create_regular_segment_segmentation(
+        data: pd.DataFrame, length,
+        id_discrete: iter,
+        id_continuous: [Any, Any]
+) -> pd.DataFrame:
+    if length == 0:
+        return data
+    # For each couple we compute the number of segment given the length
+    df_disc_f = data.groupby(id_discrete)[id_continuous[1]].max().reset_index()
+    df_disc_d = data.groupby(id_discrete)[id_continuous[0]].min().reset_index()
+    df_disc = pd.merge(df_disc_d, df_disc_f, on=id_discrete)
+
+    df_disc["nb_coupon"] = np.round((df_disc[id_continuous[1]] - df_disc[id_continuous[0]]) / length).astype(int)
+    df_disc["nb_coupon_cumsum"] = df_disc["nb_coupon"].cumsum()
+    df_disc["nb_coupon_cumsum0"] = 0
+    df_disc.loc[df_disc.index[1:], "nb_coupon_cumsum0"] = df_disc["nb_coupon_cumsum"].values[:-1]
+
+    # Create empty regular segment table and we fill it with regular segment
+    df_new = pd.DataFrame(index=range(df_disc["nb_coupon"].sum()),
+                          columns=[*id_discrete, *id_continuous])
+    for ix in df_disc.index:
+        nb_cs = df_disc.loc[ix]
+        value_temp = np.linspace(
+            nb_cs[id_continuous[0]],
+            nb_cs[id_continuous[1]],
+            num=nb_cs['nb_coupon'] + 1,
+            dtype=int)
+        df_temp = pd.DataFrame(columns=[*id_discrete, *id_continuous])
+        df_temp[id_continuous[0]] = value_temp[:-1]
+        df_temp[id_continuous[1]] = value_temp[1:]
+        df_temp[id_discrete] = nb_cs[id_discrete].values
+        df_new.iloc[nb_cs["nb_coupon_cumsum0"]:nb_cs["nb_coupon_cumsum"]] = df_temp
+
+    df_new["__id__"] = range(len(df_new))
+
+    df_keep = merge(df_new, data,
+                    id_continuous=id_continuous,
+                    id_discrete=id_discrete,
+                    how="left")
+
+    df_new = df_new[df_new["__id__"].isin(df_keep["__id__"])]
+    return df_new[[*id_discrete, *id_continuous]]
 
 
 def __merge(df_left: pd.DataFrame, df_right: pd.DataFrame,

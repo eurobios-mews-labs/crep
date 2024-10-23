@@ -9,7 +9,7 @@ import pytest
 
 from crep import merge, aggregate_constant, unbalanced_merge
 from crep import tools
-from crep.base import __merge, merge_event
+from crep.base import __merge, merge_event, create_regular_segment_segmentation
 
 
 def test_merge_basic(get_examples):
@@ -182,3 +182,13 @@ def test_merge_event(get_examples):
     merge_event(data_left=df_left, data_right=df_right, id_discrete=["id"],
                 id_continuous=["t1", "t2"],
                 )
+
+
+def test_regular_table(get_examples):
+    df_left, df_right = get_examples
+    df_left = df_left.drop(3)
+    df_ret = create_regular_segment_segmentation(
+        df_left, length=9, id_discrete=["id"], id_continuous=["t1", "t2"]
+    )
+    length = df_ret["t2"] - df_ret['t1']
+    assert np.var(length - 9) < 1
