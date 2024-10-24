@@ -5,7 +5,6 @@
 #     https://cecill.info/
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 import warnings
 
 from typing import Any, Iterable, Literal
@@ -237,16 +236,6 @@ def cumul_length(df: pd.DataFrame, id_continuous: [Any, Any]) -> int:
     """ Returns the sum of all segments sizes in the dataframe. """
     diff = df[id_continuous[1]] - df[id_continuous[0]]
     return diff.sum()
-
-
-def histogram(df: pd.DataFrame, col1: str, col2: str | None = None, bins: int = 25):
-    """ Function to make histograms of single column or of diff value between 2 columns. """
-    if col2 is None:
-        df[col1].hist(bins=bins)
-    else:
-        diff = df[col2]-df[col1]
-        diff.hist(bins=bins)
-    plt.show()
 
 
 def reorder_columns(df: pd.DataFrame, id_discrete: list[Any], id_continuous: [Any, Any]):

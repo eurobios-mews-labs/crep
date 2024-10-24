@@ -905,7 +905,6 @@ def aggregate_continuous_data(
         id_continuous: [Any, Any],
         target_size: int,
         dict_agg: None | dict[str, list[Any]] = None,
-        hist: bool = False,
         verbose: bool = False
 ) -> pd.DataFrame:
     """
@@ -924,8 +923,6 @@ def aggregate_continuous_data(
     dict_agg: optional. dict, keys: agg operator, values: list of columns or None,
         specify which aggregation operator to apply for which column. If None, default is mean for all columns.
         id_continuous, id_discrete and add_group_by columns don't need to be specified in the dictionary
-    hist : optional. boolean
-        if True, display a histogram of the segment size post aggregation
     verbose: optional. boolean
         whether to print shape of df and if df is admissible at the end of the function.
 
@@ -960,9 +957,6 @@ def aggregate_continuous_data(
     )
     df = df.drop("__lim__", axis=1)
 
-    if hist:
-        tools.histogram(df=df, col1=id_continuous[0], col2=id_continuous[1])
-
     if verbose:
         print("post aggregate_continuous_data. Admissible:",
               tools.admissible_dataframe(data=df, id_discrete=id_discrete, id_continuous=id_continuous))
@@ -978,7 +972,6 @@ def split_segment(
         id_discrete: list[Any],
         id_continuous: [Any, Any],
         target_size: int,
-        hist: bool = False,
         verbose: bool = False
 ) -> pd.DataFrame:
     """
@@ -994,8 +987,6 @@ def split_segment(
         continuous columns that delimit the segments' start and end
     target_size: integer > 0
         targeted segment size
-    hist : optional. boolean
-        if True, display a histogram of the segment size post aggregation
     verbose: optional. boolean
         whether to print shape of df and if df is admissible at the end of the function.
 
@@ -1033,9 +1024,6 @@ def split_segment(
     df = pd.concat(new_rows, axis=0).sort_values(by=[*id_discrete, id_continuous[1]]).reset_index(drop=True)
     df = df.drop(["__diff__", "__n_cut__", "__n_cut_dyn__"], axis=1)
 
-    if hist:
-        tools.histogram(df=df, col1=id_continuous[0], col2=id_continuous[1])
-
     if verbose:
         print("post split_segment. Admissible:", tools.admissible_dataframe(data=df, id_discrete=id_discrete, id_continuous=id_continuous))
         print(df.shape)
@@ -1051,7 +1039,6 @@ def homogenize_within(
         target_size: None | int = None,
         dict_agg: dict[str, list[Any]] | None = None,
         strict_size: bool = False,
-        hist: bool = False,
         verbose: bool = False
 ) -> pd.DataFrame:
     """
@@ -1076,8 +1063,6 @@ def homogenize_within(
     dict_agg: optional. dict, keys: agg operator, values: list of columns or None,
         specify which aggregation operator to apply for which column. If None, default is mean for all columns.
         id_continuous, id_discrete and add_group_by columns don't need to be specified in the dictionary
-    hist : optional. boolean
-        if True, display a histogram of the segment size post aggregation
     verbose: optional. boolean
         whether to print shape of df and if df is admissible at the end of the function.
 
@@ -1156,9 +1141,6 @@ def homogenize_within(
             verbose=verbose
         )
 
-    if hist:
-        tools.histogram(df=df, col1=id_continuous[0], col2=id_continuous[1])
-
     return df
 
 
@@ -1167,7 +1149,6 @@ def homogenize_between(
         df2: pd.DataFrame,
         id_discrete: list[Any],
         id_continuous: [Any, Any],
-        hist: bool = False,
         verbose: bool = False
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
@@ -1197,8 +1178,6 @@ def homogenize_between(
         discrete columns (object or categorical)
     id_continuous : list of 2 column names
         continuous columns that delimit the segments' start and end
-    hist : optional. boolean
-        if True, display a histogram of the segment size post aggregation
     verbose: optional. boolean
         whether to print shape of df and if df is admissible at the end of the function.
 
@@ -1225,7 +1204,6 @@ def homogenize_between(
         id_discrete=id_discrete,
         id_continuous=id_continuous,
         target_size=target_size,
-        hist=hist,
         verbose=verbose
     )
 
@@ -1234,7 +1212,6 @@ def homogenize_between(
         id_discrete=id_discrete,
         id_continuous=id_continuous,
         target_size=target_size,
-        hist=hist,
         verbose=verbose
     )
 
