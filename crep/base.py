@@ -499,8 +499,9 @@ def __merge_index(data_left, data_right,
 #     Merges two dataframes on both discrete and continuous indices, with forward-filling of missing data.
 #
 #     This function merges two Pandas DataFrames (`data_left` and `data_right`) based on discrete and continuous keys.
-#     It creates a deep copy of the dataframes, reindexes their columns to match, and concatenates them along the rowaxis.
-#     The merged dataframe is sorted based on the discrete and continuous index columns, and missing values in the left dataframe
+#     It creates a deep copy of the dataframes, reindexes their columns to match, and
+#     concatenates them along the rowaxis. The merged dataframe is sorted based on the discrete and continuous index
+#     columns, and missing values in the left dataframe
 #     are forward-filled.
 #
 #     Parameters
@@ -586,10 +587,8 @@ def merge_event(
     data_right_["__t__"] = False
 
     df_merge = pd.concat([data_left_, data_right_], axis=0)
-    print(df_merge)
     df_merge.loc[df_merge["__t__"], id_event] = df_merge.loc[df_merge["__t__"], id_continuous[1]]
     df_merge = df_merge.sort_values(by=[*id_discrete, id_event]).reset_index(drop=True)
-    print(df_merge)
 
     # event in data_right_ can be out-of-bound based on segments in data_left_.
     mask = (~df_merge[id_discrete].eq(df_merge[id_discrete].shift()))
