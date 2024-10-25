@@ -3,5 +3,6 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #     https://cecill.info/
-from crep.base import merge, aggregate_constant, unbalanced_merge
+from crep.base import (merge, aggregate_constant, unbalanced_merge, unbalanced_concat, homogenize_within,
+                       aggregate_duplicates)
 from crep.tools import compute_discontinuity
