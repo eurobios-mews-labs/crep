@@ -148,8 +148,9 @@ def test_build_admissible_dataset(get_advanced_examples):
 
     df_out = tools.build_admissible_data(df_in, id_continuous=["t1", "t2"],
                                          id_discrete=["id"])
-    df_out = df_out.sort_values(by=["id", "t1", "t2"])
-    df = df.sort_values(by=["id", "t1", "t2"])
+    df_out = df_out.sort_values(by=["id", "t1", "t2", "data2"])
+    df = df.sort_values(by=["id", "t1", "t2", 'data2'])
+    df_out.index = df.index
 
     assert all(df["data2"].values == df_out["data2"].values)
 
