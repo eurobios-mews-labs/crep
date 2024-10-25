@@ -195,7 +195,7 @@ def test_regular_table(get_examples):
     assert np.var(length - 9) < 1
 
 
-def test_merge_event(get_examples):
+def test_merge_event():
     df1 = pd.DataFrame({"id": [1000] * 4 + [2000] * 2 + [4000] * 2,
                         "cont1": [50, 100, 150, 200, 50, 100, 250, 300],
                         "cont2": [100, 150, 200, 250, 100, 150, 300, 350],
@@ -226,6 +226,8 @@ def test_merge_event(get_examples):
          'value': [np.nan, 0.0, np.nan, np.nan, 1.0, 2.0, np.nan, 3.0, np.nan, 4.0, np.nan, 5.0, np.nan, np.nan]}
     )), "\n" + str(df_test)
 
+
+test_merge_event()
 
 def test_aggregate_continuous_data_case1():
     df = pd.DataFrame({"discr1": [1000] * 8 + [2000] * 4,

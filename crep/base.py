@@ -489,19 +489,71 @@ def __merge_index(data_left, data_right,
                            id_discrete=id_discrete, id_continuous=id_c)
     return df_merge
 
+#
+# def merge_event(
+#         data_left: pd.DataFrame, data_right: pd.DataFrame,
+#         id_discrete: iter,
+#         id_continuous: [Any, Any],
+# ):
+#     """
+#     Merges two dataframes on both discrete and continuous indices, with forward-filling of missing data.
+#
+#     This function merges two Pandas DataFrames (`data_left` and `data_right`) based on discrete and continuous keys.
+#     It creates a deep copy of the dataframes, reindexes their columns to match, and concatenates them along the rowaxis.
+#     The merged dataframe is sorted based on the discrete and continuous index columns, and missing values in the left dataframe
+#     are forward-filled.
+#
+#     Parameters
+#     ----------
+#     data_left : pd.DataFrame
+#         The left dataframe to be merged.
+#     data_right : pd.DataFrame
+#         The right dataframe to be merged.
+#     id_discrete : iterable
+#         The list of column names representing discrete identifiers for sorting and merging (e.g., categorical variables).
+#     id_continuous : list of two elements (Any, Any)
+#         A list with two elements representing the continuous index (e.g., time or numerical variables).
+#         The first element is the column name of the continuous identifier used for sorting.
+#
+#     Returns
+#     -------
+#     pd.DataFrame
+#         A merged dataframe that combines `data_left` and `data_right`.
+#
+#     """
+#     data_left_ = data_left.__deepcopy__()
+#     data_right_ = data_right.__deepcopy__()
+#     data_left_ = _increasing_continuous_index(data_left_, id_continuous)
+#
+#     data_left_ = data_left_.reset_index()
+#     data_right_ = data_right_.reset_index()
+#
+#     all_columns = list(set(data_left_.columns).union(data_right_.columns))
+#     df_merge = data_left_.reindex(columns=all_columns)
+#     df_merge["__t"] = df_merge[id_continuous[0]]
+#     data_right_ = data_right_.reindex(columns=all_columns)
+#     df_merge = pd.concat((df_merge, data_right_), axis=0).sort_values(
+#         [*id_discrete, "__t"])
+#     df_merge[data_left_.columns] = df_merge[data_left_.columns].ffill()
+#
+#     df_merge.dropna()
+#     return df_merge
+
 
 def merge_event(
         data_left: pd.DataFrame, data_right: pd.DataFrame,
         id_discrete: iter,
         id_continuous: [Any, Any],
+        id_event
 ):
     """
     Merges two dataframes on both discrete and continuous indices, with forward-filling of missing data.
 
     This function merges two Pandas DataFrames (`data_left` and `data_right`) based on discrete and continuous keys.
-    It creates a deep copy of the dataframes, reindexes their columns to match, and concatenates them along the rowaxis.
-    The merged dataframe is sorted based on the discrete and continuous index columns, and missing values in the left dataframe
-    are forward-filled.
+    It assigns the event data from data_right to the correct segment in data_left, if the event is not "out-of-bound"
+    relative to the segments in data_left. The result is a dataframe with a new row for each event. Rows with NaN
+    event data are kept to represent the segment state prior to the occurrence of any event (as such the returned
+    dataframe contains duplicates based on subsets of columns id_discrete and id_continuous).
 
     Parameters
     ----------
@@ -514,6 +566,8 @@ def merge_event(
     id_continuous : list of two elements (Any, Any)
         A list with two elements representing the continuous index (e.g., time or numerical variables).
         The first element is the column name of the continuous identifier used for sorting.
+    id_event:
+        the name of the column containing the exact localisation of the event
 
     Returns
     -------
@@ -525,18 +579,48 @@ def merge_event(
     data_right_ = data_right.__deepcopy__()
     data_left_ = _increasing_continuous_index(data_left_, id_continuous)
 
-    data_left_ = data_left_.reset_index()
-    data_right_ = data_right_.reset_index()
+    data_left_ = data_left_.reset_index(drop=True)
+    data_right_ = data_right_.reset_index(drop=True)
 
-    all_columns = list(set(data_left_.columns).union(data_right_.columns))
-    df_merge = data_left_.reindex(columns=all_columns)
-    df_merge["__t"] = df_merge[id_continuous[0]]
-    data_right_ = data_right_.reindex(columns=all_columns)
-    df_merge = pd.concat((df_merge, data_right_), axis=0).sort_values(
-        [*id_discrete, "__t"])
-    df_merge[data_left_.columns] = df_merge[data_left_.columns].ffill()
+    data_left_["__t__"] = True
+    data_right_["__t__"] = False
 
-    df_merge.dropna()
+    df_merge = pd.concat([data_left_, data_right_], axis=0)
+    print(df_merge)
+    df_merge.loc[df_merge["__t__"], id_event] = df_merge.loc[df_merge["__t__"], id_continuous[1]]
+    df_merge = df_merge.sort_values(by=[*id_discrete, id_event]).reset_index(drop=True)
+    print(df_merge)
+
+    # event in data_right_ can be out-of-bound based on segments in data_left_.
+    mask = (~df_merge[id_discrete].eq(df_merge[id_discrete].shift()))
+    df_merge["__new_seg__"] = mask.sum(axis=1) > 0
+    df_merge["__new_seg_b_"] = np.nan
+    df_merge.loc[df_merge["__t__"], "__new_seg_b_"] = df_merge.loc[df_merge["__t__"], "__new_seg__"]
+    df_merge["__new_seg_b_"] = df_merge["__new_seg_b_"].bfill()
+    df_merge["__oob__"] = False
+    df_merge.loc[(~df_merge["__t__"]) & df_merge["__new_seg_b_"], "__oob__"] = True
+
+    if df_merge["__oob__"].sum() > 1:
+        warnings.warn("Not all events in data_right could be associated with a segment from data_left.")
+        print(f"Dropped: {df_merge['__oob__'].sum()}/{data_left_.shape[0]} rows")
+    df_merge = df_merge.loc[~df_merge["__oob__"], :].reset_index(drop=True)
+
+    # assign event data to
+    df_merge.loc[~df_merge["__t__"], id_continuous] = np.nan
+    df_merge[data_left_.columns] = df_merge[data_left_.columns].bfill()
+    df_merge.loc[df_merge["__t__"], id_event] = np.nan
+
+    df_merge = df_merge.sort_values(
+        by=[*id_discrete, id_continuous[1], "__t__"],
+        ascending=[*[True] * len(id_discrete), True, False]
+    ).reset_index(drop=True)
+    df_merge = df_merge.drop(columns=[col for col in df_merge.columns if "__" in col])
+
+    cols_left = [col for col in data_left.columns if col not in data_right.columns]
+    cols_right = [col for col in data_right.columns if col not in data_left.columns]
+
+    df_merge = df_merge[id_discrete + id_continuous + cols_left + cols_right]
+
     return df_merge
 
 
