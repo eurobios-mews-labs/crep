@@ -781,7 +781,6 @@ def __table_jumps(data, id1, id2, id_discrete):
     return ret
 
 
-
 def aggregate_duplicates(
         df: pd.DataFrame,
         id_discrete: list[Any],

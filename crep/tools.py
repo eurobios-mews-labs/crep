@@ -37,7 +37,7 @@ def build_admissible_data(
     df_ret[id_continuous[1]] = df_ret[id_continuous[1]].astype(df[id_continuous[1]].dtype)
 
     df_ret = pd.merge(df_ret, df_add_non_admissible,
-                      on=id_discrete + ["__zone__"], suffixes=("", "_tmp"))
+                      on=list(id_discrete) + ["__zone__"], suffixes=("", "_tmp"))
     id_continuous_tmp = [str(i) + "_tmp" for i in id_continuous]
     c = df_ret[id_continuous[0]] < df_ret[id_continuous_tmp[1]]
     c &= df_ret[id_continuous[1]] > df_ret[id_continuous_tmp[0]]
