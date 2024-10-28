@@ -3,12 +3,13 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #     https://cecill.info/
+import warnings
+from typing import Any, Literal
+
 import numpy as np
 import pandas as pd
-from crep import tools
-import warnings
 
-from typing import Any, Literal
+from crep import tools
 
 
 def merge(
@@ -342,7 +343,7 @@ def unbalanced_concat(
     # c_resolve_3
     #   |--------------------|          =>   |------|-------------|
     #          |-------------|          =>          |-------------|
-    mask = c_resolve_3.shift(-1).fillna(False) # & ~c_resolve_4
+    mask = c_resolve_3.shift(-1).fillna(False)  # & ~c_resolve_4
     df_new = df_idx.loc[mask, :].copy()
     df_temp = df_new.copy()
     df_new[id_continuous[0]] = df_new["__id3__"]
@@ -380,7 +381,7 @@ def unbalanced_concat(
         list_df_new + [df_idx.loc[c_out | c_uncov, :].drop(created_columns, axis=1)]
     ).drop_duplicates(
     ).sort_values(
-        [*id_discrete, id_continuous[1], "__t__",],
+        [*id_discrete, id_continuous[1], "__t__", ],
         ascending=[*[True] * len(id_discrete), True, False]
     ).drop(
         "__t__", axis=1
@@ -478,8 +479,6 @@ def __merge_index(data_left, data_right,
     elif cr:
         data_left = data_left.loc[:, id_].dropna()
         data_left.loc[:, id_c] = data_left.loc[:, id_c].astype(int)
-
-        data_right = data_right.loc[:, [*id_discrete, "pk"]]
         raise AssertionError(
             "[merge] This functionality is not yet implemented")
     else:
@@ -488,57 +487,6 @@ def __merge_index(data_left, data_right,
         df_merge = __merge(data_left, data_right,
                            id_discrete=id_discrete, id_continuous=id_c)
     return df_merge
-
-#
-# def merge_event(
-#         data_left: pd.DataFrame, data_right: pd.DataFrame,
-#         id_discrete: iter,
-#         id_continuous: [Any, Any],
-# ):
-#     """
-#     Merges two dataframes on both discrete and continuous indices, with forward-filling of missing data.
-#
-#     This function merges two Pandas DataFrames (`data_left` and `data_right`) based on discrete and continuous keys.
-#     It creates a deep copy of the dataframes, reindexes their columns to match, and
-#     concatenates them along the rowaxis. The merged dataframe is sorted based on the discrete and continuous index
-#     columns, and missing values in the left dataframe
-#     are forward-filled.
-#
-#     Parameters
-#     ----------
-#     data_left : pd.DataFrame
-#         The left dataframe to be merged.
-#     data_right : pd.DataFrame
-#         The right dataframe to be merged.
-#     id_discrete : iterable
-#         The list of column names representing discrete identifiers for sorting and merging (e.g., categorical variables).
-#     id_continuous : list of two elements (Any, Any)
-#         A list with two elements representing the continuous index (e.g., time or numerical variables).
-#         The first element is the column name of the continuous identifier used for sorting.
-#
-#     Returns
-#     -------
-#     pd.DataFrame
-#         A merged dataframe that combines `data_left` and `data_right`.
-#
-#     """
-#     data_left_ = data_left.__deepcopy__()
-#     data_right_ = data_right.__deepcopy__()
-#     data_left_ = _increasing_continuous_index(data_left_, id_continuous)
-#
-#     data_left_ = data_left_.reset_index()
-#     data_right_ = data_right_.reset_index()
-#
-#     all_columns = list(set(data_left_.columns).union(data_right_.columns))
-#     df_merge = data_left_.reindex(columns=all_columns)
-#     df_merge["__t"] = df_merge[id_continuous[0]]
-#     data_right_ = data_right_.reindex(columns=all_columns)
-#     df_merge = pd.concat((df_merge, data_right_), axis=0).sort_values(
-#         [*id_discrete, "__t"])
-#     df_merge[data_left_.columns] = df_merge[data_left_.columns].ffill()
-#
-#     df_merge.dropna()
-#     return df_merge
 
 
 def merge_event(
@@ -563,7 +511,8 @@ def merge_event(
     data_right : pd.DataFrame
         The right dataframe to be merged.
     id_discrete : iterable
-        The list of column names representing discrete identifiers for sorting and merging (e.g., categorical variables).
+        The list of column names representing discrete identifiers for sorting and merging
+        (e.g., categorical variables)
     id_continuous : list of two elements (Any, Any)
         A list with two elements representing the continuous index (e.g., time or numerical variables).
         The first element is the column name of the continuous identifier used for sorting.
@@ -623,11 +572,46 @@ def merge_event(
     return df_merge
 
 
-def create_regular_segment_segmentation(
+def create_regular_segmentation(
         data: pd.DataFrame, length,
         id_discrete: iter,
         id_continuous: [Any, Any]
 ) -> pd.DataFrame:
+    """
+    Creates a regular segmentation of a DataFrame based on specified discrete and continuous columns,
+    segmenting continuous values into equal-length intervals.
+
+    Parameters
+    ----------
+    data : pd.DataFrame
+        Input DataFrame containing the data to be segmented.
+    length : int
+        Length of each segment in the continuous interval. If set to 0, returns the original DataFrame.
+    id_discrete : iterable
+        Column names to be used as discrete identifiers for grouping data.
+    id_continuous : list of Any, Any
+        A list containing two continuous column names, where the first item represents the start value
+        and the second item represents the end value for the segmentation.
+
+    Returns
+    -------
+    pd.DataFrame
+        A new DataFrame with regular segments created based on the specified interval length and grouping columns.
+        The resulting DataFrame includes columns for the discrete identifiers, the continuous start and end values
+        for each segment.
+
+    Notes
+    -----
+    The function calculates the number of segments for each discrete group by dividing the interval between the
+    maximum and minimum continuous values by the given segment length. Segments are then evenly spaced within
+    this interval for each discrete group.
+
+
+    Raises
+    ------
+    ValueError
+        If `length` is not a positive integer.
+    """
     if length == 0:
         return data
     # For each couple we compute the number of segment given the length
@@ -926,10 +910,14 @@ def aggregate_duplicates(
         dict_agg = {"mean": columns}
 
     # define id_continuous agg operators
-    if "min" in dict_agg.keys(): dict_agg["min"].append(id_continuous[0])
-    else:  dict_agg["min"] = [id_continuous[0]]
-    if "max" in dict_agg.keys(): dict_agg["max"].append(id_continuous[1])
-    else: dict_agg["max"] = [id_continuous[1]]
+    if "min" in dict_agg.keys():
+        dict_agg["min"].append(id_continuous[0])
+    else:
+        dict_agg["min"] = [id_continuous[0]]
+    if "max" in dict_agg.keys():
+        dict_agg["max"].append(id_continuous[1])
+    else:
+        dict_agg["max"] = [id_continuous[1]]
 
     group_by = [*id_discrete, "__lim__"]
     dict_renaming = {}
@@ -944,8 +932,8 @@ def aggregate_duplicates(
             rk = list(dict_renaming.keys())
             if col not in id_continuous:
                 if col in rk:
-                    df_no_dupl[col+f"_{len(rk)}"] = df_no_dupl[col]
-                    dict_renaming[col+f"_{len(rk)}"] = tools.name_simplifier([f"{k}_" + col])[0]
+                    df_no_dupl[col + f"_{len(rk)}"] = df_no_dupl[col]
+                    dict_renaming[col + f"_{len(rk)}"] = tools.name_simplifier([f"{k}_" + col])[0]
                 else:
                     dict_renaming[col] = tools.name_simplifier([f"{k}_" + col])[0]
 
@@ -1094,12 +1082,12 @@ def split_segment(
     while df["__n_cut_dyn__"].max() > 0:
         df_temp = df.loc[df["__n_cut_dyn__"] >= 1, :].copy()
         df_temp[id_continuous[1]] = (
-            df_temp[id_continuous[0]]
-            + df_temp["__diff__"] * ((df_temp["__n_cut_dyn__"]) / df_temp["__n_cut__"])
+                df_temp[id_continuous[0]]
+                + df_temp["__diff__"] * ((df_temp["__n_cut_dyn__"]) / df_temp["__n_cut__"])
         ).round().astype("int")
         df_temp[id_continuous[0]] = (
-            df_temp[id_continuous[0]]
-            + df_temp["__diff__"] * ((df_temp["__n_cut_dyn__"] - 1) / df_temp["__n_cut__"])
+                df_temp[id_continuous[0]]
+                + df_temp["__diff__"] * ((df_temp["__n_cut_dyn__"] - 1) / df_temp["__n_cut__"])
         ).round().astype("int")
         new_rows.append(df_temp)
         df["__n_cut_dyn__"] -= 1
@@ -1107,7 +1095,8 @@ def split_segment(
     df = df.drop(["__diff__", "__n_cut__", "__n_cut_dyn__"], axis=1)
 
     if verbose:
-        print("post split_segment. Admissible:", tools.admissible_dataframe(data=df, id_discrete=id_discrete, id_continuous=id_continuous))
+        print("post split_segment. Admissible:",
+              tools.admissible_dataframe(data=df, id_discrete=id_discrete, id_continuous=id_continuous))
         print(df.shape)
 
     return df

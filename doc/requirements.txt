@@ -1,0 +1,10 @@
+sphinx
+sphinx-book-theme
+myst-parser
+sphinx-copybutton
+sphinx-favicon
+nbsphinx
+sphinx-autoapi
+sphinx-version-warning
+sphinx-prompt
+numpydoc

@@ -217,7 +217,7 @@ def create_continuity_modified(
     if df_in["discontinuity"].sum() == 0:
         return df
     else:
-        mask = (df[id_discrete].eq(df[id_discrete].shift())).sum(axis=1) < len(id_discrete)
+        mask = (df[id_discrete].eq(df[id_discrete].shift())).sum(axis=1) < len(list(id_discrete))
         ix__ = np.where(df_in["discontinuity"].values & ~mask)[0]
         df_add = pd.DataFrame(columns=df_in.columns, index=range(len(ix__)))
         df_add[index] = df_in.iloc[ix__][index].values
@@ -360,11 +360,13 @@ def concretize_aggregation(
 
     drop_cols = set()  # columns that should be removed at the end ot the process
     df_gr = []  # list of dataframes that will further be concatenated
-    colnames = []  # names of new columns
+    col_names = []  # names of new columns
 
     group_by = id_discrete
-    if type(add_group_by) is str: group_by = group_by + [add_group_by]
-    elif type(add_group_by) is list: group_by = group_by + add_group_by
+    if type(add_group_by) is str:
+        group_by = group_by + [add_group_by]
+    elif type(add_group_by) is list:
+        group_by = group_by + add_group_by
 
     if dict_agg is None:
         warnings.warn("dict_agg not specified. Default aggregation operator set to 'mean' for all features.")
@@ -372,10 +374,14 @@ def concretize_aggregation(
         dict_agg = {"mean": columns}
 
     # define id_continuous agg operators
-    if "min" in dict_agg.keys(): dict_agg["min"].append(id_continuous[0])
-    else:  dict_agg["min"] = [id_continuous[0]]
-    if "max" in dict_agg.keys(): dict_agg["max"].append(id_continuous[1])
-    else: dict_agg["max"] = [id_continuous[1]]
+    if "min" in dict_agg.keys():
+        dict_agg["min"].append(id_continuous[0])
+    else:
+        dict_agg["min"] = [id_continuous[0]]
+    if "max" in dict_agg.keys():
+        dict_agg["max"].append(id_continuous[1])
+    else:
+        dict_agg["max"] = [id_continuous[1]]
 
     for i, items in enumerate(dict_agg.items()):
         k, v = items
@@ -396,13 +402,13 @@ def concretize_aggregation(
         else:
             data = df[group_by + v].groupby(by=group_by).agg(k).reset_index().drop(group_by, axis=1)
             df_gr.append(data)
-        colnames += [f"{k}_" + col for col in v]
+        col_names += [f"{k}_" + col for col in v]
         for col in v:
             drop_cols.add(col)
 
     # concatenation of all groupby dataframes
     df_gr = pd.concat(df_gr, axis=1)
-    df_gr.columns = name_simplifier(colnames)
+    df_gr.columns = name_simplifier(col_names)
     df = df.drop(list(drop_cols), axis=1)
     df = df.drop_duplicates(group_by).reset_index(drop=True)
     df = pd.concat([df, df_gr], axis=1)
@@ -429,7 +435,8 @@ def n_cut_finder(
 ) -> pd.Series:
     """
     Finds in how many sub-segments the segment should be cut (method = "split") or find where to stop the aggregation of
-    segments into a super segment (method = "agg"). The returned value of the function is the pd.Series of the column __n_cut__
+    segments into a super segment (method = "agg"). The returned value of the function is the pd.Series of the column
+     __n_cut__
 
     If method is "agg", the __n_cut__ contains non-NaN value everywhere but in the last row before a change of
     id_discrete value. The non-NaN values represent how many super-segments should result from the aggregation of the
@@ -604,5 +611,3 @@ def fill_duplicates_na(df, id_discrete: list[Any], id_continuous: [Any, Any]):
 
     df = df.drop("__zone__", axis=1)
     return df
-
-
