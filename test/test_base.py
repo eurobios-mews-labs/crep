@@ -188,7 +188,7 @@ def test_merge_event(get_examples):
 
 def test_regular_table(get_examples):
     df_left, df_right = get_examples
-    df_ret = base.create_regular_segment_segmentation(
+    df_ret = base.create_regular_segmentation(
         df_left, length=9, id_discrete=["id"], id_continuous=["t1", "t2"]
     )
     length = df_ret["t2"] - df_ret['t1']
