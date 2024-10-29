@@ -7,10 +7,10 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from crep import base
 from crep import (merge, aggregate_constant, unbalanced_merge, unbalanced_concat, homogenize_within,
                   aggregate_duplicates)
 from crep import tools
-from crep import base
 
 
 def test_merge_basic(get_examples):
@@ -51,8 +51,8 @@ def test__merge(get_advanced_examples):
     df_left, df_right = get_advanced_examples
 
     df_merge = base.__merge(df_left, df_right,
-                       id_discrete=["id"],
-                       id_continuous=["t1", "t2"])
+                            id_discrete=["id"],
+                            id_continuous=["t1", "t2"])
 
 
 def test_admissible_data(get_advanced_examples):
@@ -182,8 +182,9 @@ def test_merge_how(get_advanced_examples):
 def test_merge_event(get_examples):
     df_left, df_right = get_examples
     base.merge_event(data_left=df_left, data_right=df_right, id_discrete=["id"],
-                id_continuous=["t1", "t2"],
-                )
+                     id_continuous=["t1", "t2"],
+                     id_event="t1"
+                     )
 
 
 def test_regular_table(get_examples):
@@ -194,8 +195,13 @@ def test_regular_table(get_examples):
     length = df_ret["t2"] - df_ret['t1']
     assert np.var(length - 9) < 1
 
+    df_ret = base.create_regular_segmentation(
+        df_left, length=0, id_discrete=["id"], id_continuous=["t1", "t2"]
+    )
+    assert df_ret.equals(df_left)
 
-def test_merge_event():
+
+def test_merge_event_case2():
     df1 = pd.DataFrame({"id": [1000] * 4 + [2000] * 2 + [4000] * 2,
                         "cont1": [50, 100, 150, 200, 50, 100, 250, 300],
                         "cont2": [100, 150, 200, 250, 100, 150, 300, 350],
@@ -227,14 +233,12 @@ def test_merge_event():
     )), "\n" + str(df_test)
 
 
-test_merge_event()
-
 def test_aggregate_continuous_data_case1():
     df = pd.DataFrame({"discr1": [1000] * 8 + [2000] * 4,
-                        "discr2": [1] * 4 + [2] * 4 + [1] * 4,
-                        "cont1": [50, 100, 150, 200, 40, 75, 135, 178, 50, 90, 150, 210],
-                        "cont2": [100, 150, 200, 250, 75, 135, 178, 211, 90, 150, 210, 280],
-                        "date": list(range(2000, 2024, 2))})
+                       "discr2": [1] * 4 + [2] * 4 + [1] * 4,
+                       "cont1": [50, 100, 150, 200, 40, 75, 135, 178, 50, 90, 150, 210],
+                       "cont2": [100, 150, 200, 250, 75, 135, 178, 211, 90, 150, 210, 280],
+                       "date": list(range(2000, 2024, 2))})
     df_test = base.aggregate_continuous_data(
         df=df,
         id_discrete=["discr1", "discr2"],
@@ -251,10 +255,10 @@ def test_aggregate_continuous_data_case1():
 
 def test_aggregate_continuous_data_case2():
     df = pd.DataFrame({"discr1": [830341] * 4,
-                        "discr2": ["v2"] * 4,
-                        "cont1": [637, 704, 634008, 634062],
-                        "cont2": [704, 789, 634062, 634130],
-                        "date": [2000, 2002, 2004, 2006]})
+                       "discr2": ["v2"] * 4,
+                       "cont1": [637, 704, 634008, 634062],
+                       "cont2": [704, 789, 634062, 634130],
+                       "date": [2000, 2002, 2004, 2006]})
     df_test = base.aggregate_continuous_data(
         df=df,
         id_discrete=["discr1", "discr2"],
@@ -270,9 +274,9 @@ def test_aggregate_continuous_data_case2():
 
 def test_split_segment():
     df = pd.DataFrame({"discr1": [1000] * 5 + [2000] * 3,
-                        "discr2": [1] * 2 + [2] * 3 + [1] * 3,
-                        "cont1": [50, 100, 40, 75, 300, 50, 90, 250],
-                        "cont2": [100, 150, 75, 300, 380, 90, 250, 310]})
+                       "discr2": [1] * 2 + [2] * 3 + [1] * 3,
+                       "cont1": [50, 100, 40, 75, 300, 50, 90, 250],
+                       "cont2": [100, 150, 75, 300, 380, 90, 250, 310]})
     df_test = base.split_segment(
         df=df,
         id_discrete=["discr1", "discr2"],
@@ -288,10 +292,10 @@ def test_split_segment():
 def test_homogenize_within_case1():
     # I - df["__diff__"].min() = 33 < 54 and agg_applicable, so it should apply method "agg"
     df = pd.DataFrame({"discr1": [1000] * 8 + [2000] * 4,
-                        "discr2": [1] * 4 + [2] * 4 + [1] * 4,
-                        "cont1": [50, 100, 150, 200, 40, 75, 135, 178, 50, 90, 150, 210],
-                        "cont2": [100, 150, 200, 250, 75, 135, 178, 211, 90, 150, 210, 280],
-                        "date": list(range(2000, 2024, 2))})
+                       "discr2": [1] * 4 + [2] * 4 + [1] * 4,
+                       "cont1": [50, 100, 150, 200, 40, 75, 135, 178, 50, 90, 150, 210],
+                       "cont2": [100, 150, 200, 250, 75, 135, 178, 211, 90, 150, 210, 280],
+                       "date": list(range(2000, 2024, 2))})
     df_test = homogenize_within(
         df=df,
         id_discrete=["discr1", "discr2"],
@@ -307,10 +311,10 @@ def test_homogenize_within_case1():
 def test_homogenize_within_case2():
     # II - method split but target_size > (df["__diff__"].min() * 1.33) so target size should be reduced to int(33 * 1.33)
     df = pd.DataFrame({"discr1": [1000] * 8 + [2000] * 4,
-                        "discr2": [1] * 4 + [2] * 4 + [1] * 4,
-                        "cont1": [50, 100, 150, 200, 40, 75, 135, 178, 50, 90, 150, 210],
-                        "cont2": [100, 150, 200, 250, 75, 135, 178, 211, 90, 150, 210, 280],
-                        "date": list(range(2000, 2024, 2))})
+                       "discr2": [1] * 4 + [2] * 4 + [1] * 4,
+                       "cont1": [50, 100, 150, 200, 40, 75, 135, 178, 50, 90, 150, 210],
+                       "cont2": [100, 150, 200, 250, 75, 135, 178, 211, 90, 150, 210, 280],
+                       "date": list(range(2000, 2024, 2))})
     df_test = homogenize_within(
         df=df,
         id_discrete=["discr1", "discr2"],
@@ -318,7 +322,7 @@ def test_homogenize_within_case2():
         method="split",
         target_size=100,
     )
-    diff = df_test["cont2"]-df_test["cont1"]
+    diff = df_test["cont2"] - df_test["cont1"]
     assert \
         ((len(df_test) >= len(df))
          & (diff.max() / diff.min() < 2)), \
@@ -328,17 +332,17 @@ def test_homogenize_within_case2():
 def test_homogenize_within_case3():
     # III - method split without target size
     df = pd.DataFrame({"discr1": [1000] * 8 + [2000] * 4,
-                        "discr2": [1] * 4 + [2] * 4 + [1] * 4,
-                        "cont1": [50, 100, 150, 200, 40, 75, 135, 178, 50, 90, 150, 210],
-                        "cont2": [100, 150, 200, 250, 75, 135, 178, 211, 90, 150, 210, 280],
-                        "date": list(range(2000, 2024, 2))})
+                       "discr2": [1] * 4 + [2] * 4 + [1] * 4,
+                       "cont1": [50, 100, 150, 200, 40, 75, 135, 178, 50, 90, 150, 210],
+                       "cont2": [100, 150, 200, 250, 75, 135, 178, 211, 90, 150, 210, 280],
+                       "date": list(range(2000, 2024, 2))})
     df_test = homogenize_within(
         df=df,
         id_discrete=["discr1", "discr2"],
         id_continuous=["cont1", "cont2"],
         method="split"
     )
-    diff = df_test["cont2"]-df_test["cont1"]
+    diff = df_test["cont2"] - df_test["cont1"]
     assert \
         ((len(df_test) >= len(df))
          & (diff.max() / diff.min() < 2)), \
@@ -348,10 +352,10 @@ def test_homogenize_within_case3():
 def test_homogenize_within_case4():
     # IV - method split and agg, without target size. No dict_agg, so default agg should be mean.
     df = pd.DataFrame({"discr1": [1000] * 5 + [2000] * 3,
-                        "discr2": [1] * 2 + [2] * 3 + [1] * 3,
-                        "cont1": [50, 100, 40, 75, 300, 50, 90, 250],
-                        "cont2": [100, 150, 75, 300, 380, 90, 250, 310],
-                        "date": [2000, 2002, 2003, 2006, 2008, 2010, 2012, 2014]})
+                       "discr2": [1] * 2 + [2] * 3 + [1] * 3,
+                       "cont1": [50, 100, 40, 75, 300, 50, 90, 250],
+                       "cont2": [100, 150, 75, 300, 380, 90, 250, 310],
+                       "date": [2000, 2002, 2003, 2006, 2008, 2010, 2012, 2014]})
     df_test = homogenize_within(
         df=df,
         id_discrete=["discr1", "discr2"],
@@ -359,7 +363,7 @@ def test_homogenize_within_case4():
         method=["agg", "split"],
         target_size=100,
     )
-    diff = df_test["cont2"]-df_test["cont1"]
+    diff = df_test["cont2"] - df_test["cont1"]
     assert \
         ((len(df_test) >= len(df))
          & (diff.max() / diff.min() < 2)), \
@@ -369,9 +373,9 @@ def test_homogenize_within_case4():
 def test_homogenize_within_case5():
     # V - method split and agg, without target size. Both should be applied
     df = pd.DataFrame({"discr1": [1000] * 5 + [2000] * 3,
-                        "discr2": [1] * 2 + [2] * 3 + [1] * 3,
-                        "cont1": [50, 100, 40, 75, 300, 50, 90, 250],
-                        "cont2": [100, 150, 75, 300, 380, 90, 250, 310]})
+                       "discr2": [1] * 2 + [2] * 3 + [1] * 3,
+                       "cont1": [50, 100, 40, 75, 300, 50, 90, 250],
+                       "cont2": [100, 150, 75, 300, 380, 90, 250, 310]})
     df_test = homogenize_within(
         df=df,
         id_discrete=["discr1", "discr2"],
@@ -379,8 +383,8 @@ def test_homogenize_within_case5():
         method=["agg", "split"],
         dict_agg={}
     )
-    diff = df_test["cont2"]-df_test["cont1"]
-    diff0 = df["cont2"]-df["cont1"]
+    diff = df_test["cont2"] - df_test["cont1"]
+    diff0 = df["cont2"] - df["cont1"]
     assert \
         ((diff.min() > diff0.min())  # proof of agg
          & (diff.max() < diff0.max())  # proof of split
@@ -402,20 +406,20 @@ def test_homogenize_within_case6():
         target_size=50,
         dict_agg={}
     )
-    diff = df_test["cont2"]-df_test["cont1"]
+    diff = df_test["cont2"] - df_test["cont1"]
     assert \
         ((diff.max() / diff.min() < 2)  # overall wanted result
          & (diff.max() < 100)), \
-         "\n" + str(df_test)
+        "\n" + str(df_test)
 
 
 def test_homogenize_between():
-    df1 = pd.DataFrame({"discr1": [1000]*4,
-                        "discr2": [1]*4,
+    df1 = pd.DataFrame({"discr1": [1000] * 4,
+                        "discr2": [1] * 4,
                         "cont1": [50, 110, 155, 200],
                         "cont2": [110, 155, 200, 260]})
-    df2 = pd.DataFrame({"discr1": [1000]*2,
-                        "discr2": [1]*2,
+    df2 = pd.DataFrame({"discr1": [1000] * 2,
+                        "discr2": [1] * 2,
                         "cont1": [50, 200],
                         "cont2": [200, 260]})
     df_test = base.homogenize_between(
@@ -424,8 +428,8 @@ def test_homogenize_between():
         id_discrete=["discr1", "discr2"],
         id_continuous=["cont1", "cont2"]
     )
-    diff0 = df_test[0]["cont2"]-df_test[0]["cont1"]
-    diff1 = df_test[1]["cont2"]-df_test[1]["cont1"]
+    diff0 = df_test[0]["cont2"] - df_test[0]["cont1"]
+    diff1 = df_test[1]["cont2"] - df_test[1]["cont1"]
     assert \
         ((diff0.max() / diff1.min() < 2)
          & (diff1.max() / diff0.min() < 2)), \
@@ -441,7 +445,7 @@ def test_aggregate_duplicates_case1():
     df_test = aggregate_duplicates(
         df=df,
         id_discrete=["discr1", "discr2"],
-        id_continuous=["cont1", "cont2"],
+        id_continuous=["cont1", "cont2"], verbose=True
     )
     assert str(df_test) == str(pd.DataFrame({
         'discr1': [1000, 1000, 1000, 2000, 2000, 2000],
@@ -743,7 +747,7 @@ def test_unbalanced_concat_case10():
                    150.0],
          'date': [2013.0, np.nan, 2013.0, np.nan, 2013.0, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan,
                   2015.0, 2016.0, 2017.0]}
-    )),  "\n" + str(df_test)
+    )), "\n" + str(df_test)
 
 
 def test_unbalanced_concat_case11():
@@ -760,7 +764,7 @@ def test_unbalanced_concat_case11():
         df1=df1,
         df2=df2,
         id_discrete=["discr1", "discr2"],
-        id_continuous=["cont1", "cont2"]
+        id_continuous=["cont1", "cont2"], verbose=True
     )
     assert str(df_test) == str(pd.DataFrame({
         'discr1': [1000] * 8,
@@ -788,8 +792,8 @@ def test_unbalanced_concat_case12():
         id_continuous=["cont1", "cont2"]
     )
     assert str(df_test) == str(pd.DataFrame({
-        'discr1': [1000]*10,
-        'discr2': [1]*10,
+        'discr1': [1000] * 10,
+        'discr2': [1] * 10,
         'cont1': [30.0, 50.0, 50.0, 75.0, 75.0, 80.0, 80.0, 115.0, 115.0, 120.0],
         'cont2': [50.0, 75.0, 75.0, 80.0, 80.0, 115.0, 115.0, 120.0, 120.0, 150.0],
         'date': [2013.0, np.nan, 2013.0, np.nan, 2013.0, np.nan, 2013.0, np.nan, 2013.0, np.nan]
