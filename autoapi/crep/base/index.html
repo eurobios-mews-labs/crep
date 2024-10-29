@@ -303,7 +303,6 @@
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crep.base.merge_event"><code class="docutils literal notranslate"><span class="pre">merge_event()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crep.base.create_regular_segmentation"><code class="docutils literal notranslate"><span class="pre">create_regular_segmentation()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crep.base.__merge"><code class="docutils literal notranslate"><span class="pre">__merge()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crep.base.is_event"><code class="docutils literal notranslate"><span class="pre">is_event()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crep.base.__fix_discrete_index"><code class="docutils literal notranslate"><span class="pre">__fix_discrete_index()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crep.base.suppress_duplicates"><code class="docutils literal notranslate"><span class="pre">suppress_duplicates()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crep.base._increasing_continuous_index"><code class="docutils literal notranslate"><span class="pre">_increasing_continuous_index()</span></code></a></li>
@@ -358,40 +357,37 @@
 <tr class="row-even"><td><p><a class="reference internal" href="#crep.base.__merge" title="crep.base.__merge"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__merge</span></code></a>(df_left, df_right, id_discrete, id_continuous)</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#crep.base.is_event" title="crep.base.is_event"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_event</span></code></a>(data, id_continuous)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#crep.base.__fix_discrete_index" title="crep.base.__fix_discrete_index"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__fix_discrete_index</span></code></a>(data_left, data_right, ...)</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#crep.base.__fix_discrete_index" title="crep.base.__fix_discrete_index"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__fix_discrete_index</span></code></a>(data_left, data_right, ...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#crep.base.suppress_duplicates" title="crep.base.suppress_duplicates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">suppress_duplicates</span></code></a>(df, id_discrete, continuous_index)</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#crep.base.suppress_duplicates" title="crep.base.suppress_duplicates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">suppress_duplicates</span></code></a>(df, id_discrete, continuous_index)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#crep.base._increasing_continuous_index" title="crep.base._increasing_continuous_index"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_increasing_continuous_index</span></code></a>(df, id_continuous)</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#crep.base._increasing_continuous_index" title="crep.base._increasing_continuous_index"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_increasing_continuous_index</span></code></a>(df, id_continuous)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#crep.base.__refactor_data" title="crep.base.__refactor_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__refactor_data</span></code></a>(data_left, data_right, id_continuous, ...)</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#crep.base.__refactor_data" title="crep.base.__refactor_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__refactor_data</span></code></a>(data_left, data_right, id_continuous, ...)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#crep.base.__check_args_merge" title="crep.base.__check_args_merge"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__check_args_merge</span></code></a>(data_left, data_right, ...)</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#crep.base.__check_args_merge" title="crep.base.__check_args_merge"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__check_args_merge</span></code></a>(data_left, data_right, ...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#crep.base.__table_jumps" title="crep.base.__table_jumps"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__table_jumps</span></code></a>(data, id1, id2, id_discrete)</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#crep.base.__table_jumps" title="crep.base.__table_jumps"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__table_jumps</span></code></a>(data, id1, id2, id_discrete)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#crep.base.aggregate_duplicates" title="crep.base.aggregate_duplicates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">aggregate_duplicates</span></code></a>(df, id_discrete, id_continuous[, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#crep.base.aggregate_duplicates" title="crep.base.aggregate_duplicates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">aggregate_duplicates</span></code></a>(df, id_discrete, id_continuous[, ...])</p></td>
 <td><p>Removes duplicated rows by aggregating them.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#crep.base.aggregate_continuous_data" title="crep.base.aggregate_continuous_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">aggregate_continuous_data</span></code></a>(→ pandas.DataFrame)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#crep.base.aggregate_continuous_data" title="crep.base.aggregate_continuous_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">aggregate_continuous_data</span></code></a>(→ pandas.DataFrame)</p></td>
 <td><p>Aggregate segments to uniformize the size of smaller segments.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#crep.base.split_segment" title="crep.base.split_segment"><code class="xref py py-obj docutils literal notranslate"><span class="pre">split_segment</span></code></a>(→ pandas.DataFrame)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#crep.base.split_segment" title="crep.base.split_segment"><code class="xref py py-obj docutils literal notranslate"><span class="pre">split_segment</span></code></a>(→ pandas.DataFrame)</p></td>
 <td><p>Uniformizes segment size by splitting them into shorter segments close to target size.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#crep.base.homogenize_within" title="crep.base.homogenize_within"><code class="xref py py-obj docutils literal notranslate"><span class="pre">homogenize_within</span></code></a>(→ pandas.DataFrame)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#crep.base.homogenize_within" title="crep.base.homogenize_within"><code class="xref py py-obj docutils literal notranslate"><span class="pre">homogenize_within</span></code></a>(→ pandas.DataFrame)</p></td>
 <td><p>Uniformizes segment size by splitting them into shorter segments close to target size. The uniformization aims</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#crep.base.homogenize_between" title="crep.base.homogenize_between"><code class="xref py py-obj docutils literal notranslate"><span class="pre">homogenize_between</span></code></a>(→ tuple[pandas.DataFrame, ...)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#crep.base.homogenize_between" title="crep.base.homogenize_between"><code class="xref py py-obj docutils literal notranslate"><span class="pre">homogenize_between</span></code></a>(→ tuple[pandas.DataFrame, ...)</p></td>
 <td><p>If the ratio of max segment size in one dataframe and min segment size in the other dataframe &gt; 2, it may create</p></td>
 </tr>
 </tbody>
@@ -590,11 +586,6 @@ this interval for each discrete group.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="crep.base.__merge">
 <span class="sig-prename descclassname"><span class="pre">crep.base.</span></span><span class="sig-name descname"><span class="pre">__merge</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df_left</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df_right</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_discrete</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">iter</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_continuous</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">('left',</span> <span class="pre">'right')</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#crep.base.__merge" title="Link to this definition">#</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="crep.base.is_event">
-<span class="sig-prename descclassname"><span class="pre">crep.base.</span></span><span class="sig-name descname"><span class="pre">is_event</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_continuous</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">iter</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#crep.base.is_event" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
@@ -859,7 +850,6 @@ row 4: from df2 45-85
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crep.base.merge_event"><code class="docutils literal notranslate"><span class="pre">merge_event()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crep.base.create_regular_segmentation"><code class="docutils literal notranslate"><span class="pre">create_regular_segmentation()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crep.base.__merge"><code class="docutils literal notranslate"><span class="pre">__merge()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crep.base.is_event"><code class="docutils literal notranslate"><span class="pre">is_event()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crep.base.__fix_discrete_index"><code class="docutils literal notranslate"><span class="pre">__fix_discrete_index()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crep.base.suppress_duplicates"><code class="docutils literal notranslate"><span class="pre">suppress_duplicates()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crep.base._increasing_continuous_index"><code class="docutils literal notranslate"><span class="pre">_increasing_continuous_index()</span></code></a></li>

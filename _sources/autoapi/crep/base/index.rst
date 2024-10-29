@@ -17,7 +17,6 @@ Functions
    crep.base.merge_event
    crep.base.create_regular_segmentation
    crep.base.__merge
-   crep.base.is_event
    crep.base.__fix_discrete_index
    crep.base.suppress_duplicates
    crep.base._increasing_continuous_index
@@ -321,8 +320,6 @@ Module Contents
        !! processed by numpydoc !!
 
 .. py:function:: __merge(df_left: pandas.DataFrame, df_right: pandas.DataFrame, id_discrete: iter, id_continuous, names=('left', 'right'))
-
-.. py:function:: is_event(data, id_continuous: iter)
 
 .. py:function:: __fix_discrete_index(data_left: pandas.DataFrame, data_right: pandas.DataFrame, id_discrete_left: iter, id_discrete_right: iter)
 
