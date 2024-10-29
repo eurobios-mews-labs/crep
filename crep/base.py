@@ -468,24 +468,12 @@ def __merge_index(data_left, data_right,
                   names=("left", "right")):
     id_ = [*id_discrete, *id_continuous]
     id_c = id_continuous
-    cr = is_event(data_right, id_continuous=id_continuous)
-    cl = is_event(data_left, id_continuous=id_continuous)
-    if cr and cl:
-        raise AssertionError(
-            "[merge] This functionality is not yet implemented")
-    elif cl:
-        return __merge_index(data_right, data_left, id_discrete=id_discrete,
-                             id_continuous=id_c, names=names)
-    elif cr:
-        data_left = data_left.loc[:, id_].dropna()
-        data_left.loc[:, id_c] = data_left.loc[:, id_c].astype(int)
-        raise AssertionError(
-            "[merge] This functionality is not yet implemented")
-    else:
-        data_left = data_left.loc[:, id_].dropna()
-        data_right = data_right.loc[:, id_].dropna()
-        df_merge = __merge(data_left, data_right,
-                           id_discrete=id_discrete, id_continuous=id_c)
+
+
+    data_left = data_left.loc[:, id_].dropna()
+    data_right = data_right.loc[:, id_].dropna()
+    df_merge = __merge(data_left, data_right,
+                       id_discrete=id_discrete, id_continuous=id_c)
     return df_merge
 
 
@@ -732,14 +720,6 @@ def __merge(df_left: pd.DataFrame, df_right: pd.DataFrame,
     df_merge = df_merge.loc[
         ~(df_merge[index_left] + df_merge[index_right] == -2)]
     return df_merge
-
-
-def is_event(data, id_continuous: iter):
-    id_continuous = list(id_continuous)
-    if id_continuous[0] in data.columns and id_continuous[1] in data.columns:
-        return False
-    return True
-
 
 def __fix_discrete_index(
         data_left: pd.DataFrame,
