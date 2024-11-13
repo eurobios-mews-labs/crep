@@ -1056,6 +1056,7 @@ def split_segment(
         id_discrete: list[Any],
         id_continuous: [Any, Any],
         target_size: int,
+        col_sum_agg: list[str] = [],
         verbose: bool = False
 ) -> pd.DataFrame:
     """
@@ -1071,6 +1072,14 @@ def split_segment(
         continuous columns that delimit the segments' start and end
     target_size: integer > 0
         targeted segment size
+    col_sum_agg: list[str], optional
+        Default to empty list. Some columns may have to be summed over several segments when creating super segments.
+        If so, splitting a row and assigning to each new row the same value as in the original non-split row may
+        result in inflated sums later on. To counter that, the columns that should later be summed are specified in
+        this list. The values are transformed into ratios relative to the segment size, then the row is split, and
+        then an inverse transformation is done to reassign a non-ratio value.
+    hist : optional. boolean
+        if True, display a histogram of the segment size post aggregation
     verbose: optional. boolean
         whether to print shape of df and if df is admissible at the end of the function.
 
@@ -1092,6 +1101,9 @@ def split_segment(
     if "__diff__" not in df.columns:
         df["__diff__"] = df[id_continuous[1]] - df[id_continuous[0]]
 
+    for col in col_sum_agg:
+        df[col] = df[col] / df["__diff__"]
+
     new_rows = []
     while df["__n_cut_dyn__"].max() > 0:
         df_temp = df.loc[df["__n_cut_dyn__"] >= 1, :].copy()
@@ -1106,6 +1118,11 @@ def split_segment(
         new_rows.append(df_temp)
         df["__n_cut_dyn__"] -= 1
     df = pd.concat(new_rows, axis=0).sort_values(by=[*id_discrete, id_continuous[1]]).reset_index(drop=True)
+
+    df["__diff__"] = df[id_continuous[1]] - df[id_continuous[0]]
+    for col in col_sum_agg:
+        df[col] = df[col] * df["__diff__"]
+
     df = df.drop(["__diff__", "__n_cut__", "__n_cut_dyn__"], axis=1)
 
     if verbose:
@@ -1206,12 +1223,18 @@ def homogenize_within(
 
     # ==================
     # apply method(s)
+    col_sum_agg = []
+    if dict_agg is not None:
+        if "sum" in dict_agg.keys():
+            col_sum_agg = dict_agg["sum"]
+
     if "split" in method or ("agg" in method and target_size < min_thresh):
         df = split_segment(
             df=df,
             id_discrete=id_discrete,
             id_continuous=id_continuous,
             target_size=target_size // 3 if "agg" in method else target_size,
+            col_sum_agg=col_sum_agg,
             verbose=verbose
         )
 
