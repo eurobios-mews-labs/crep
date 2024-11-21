@@ -3,11 +3,11 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #     https://cecill.info/
+import warnings
+from typing import Any, Iterable, Literal
+
 import numpy as np
 import pandas as pd
-import warnings
-
-from typing import Any, Iterable, Literal
 
 
 def build_admissible_data(
@@ -117,7 +117,7 @@ def create_zones(
     df_out.loc[df_out.index[1:], "__id2_prev__"] = df_out.loc[df_out.index[:-1], id_continuous[1]].values
     c_inner = df_out[id_continuous[0]] >= df_out["__id2_prev__"]
 
-    c_disc = df_out[id_discrete].iloc[1:].values == df_out[id_discrete].iloc[:-1].values
+    c_disc = np.array(df_out[id_discrete].iloc[1:].values == df_out[id_discrete].iloc[:-1].values)
     c_disc = c_disc.mean(axis=1) == 1
     c_disc = ~ np.concatenate(([True], c_disc))
 
@@ -287,6 +287,7 @@ def cumul_segment_length(
         id_continuous: [Any, Any]
 ) -> pd.Series:
     """
+    TODO : compute_cumulated_length
     Computes cumulative sum of segment length for each unique combination of id_discrete.
 
     Parameters
@@ -499,6 +500,7 @@ def clusterize(
         target_size: int,
 ) -> pd.Series:
     """
+    TODO: create_cluster_by_size
     Defines where to limit segment aggregation when uniformizing segment size to target size.
 
     Parameters
@@ -611,3 +613,7 @@ def fill_duplicates_na(df, id_discrete: list[Any], id_continuous: [Any, Any]):
 
     df = df.drop("__zone__", axis=1)
     return df
+
+
+def sort(df: pd.DataFrame, id_discrete: list[Any], id_continuous: [Any, Any]) -> pd.DataFrame:
+    return df.sort_values(by=[*id_discrete, *id_continuous])

@@ -9,34 +9,13 @@ from pytest import fixture
 
 @fixture(scope="module")
 def get_examples():
-    df_left = pd.DataFrame(
-        dict(id=[1, 1, 2, 2, 2],
-             t1=[0, 10, 0, 100, 120],
-             t2=[10, 100, 90, 110, 130],
-             data1=[0.2, 0.2, 0.1, 0.3, 0.2])
-    )
-    df_right = pd.DataFrame(
-        dict(id=[1, 1, 2, 2, 2],
-             t1=[5, 10, 0, 100, 120],
-             t2=[10, 80, 90, 110, 130],
-             data2=[0.2, 0.2, 0.1, 0.3, 0.2])
-    )
+    df_left = pd.read_csv("data/base_left.csv")
+    df_right = pd.read_csv("data/base_right.csv")
     return df_left, df_right
 
 
 @fixture(scope="module")
 def get_advanced_examples():
-    df_left = pd.DataFrame(
-        dict(id=[1, 1, 2, 2, 2],
-             id2=["a", "b", "b", "b", "b"],
-             t1=[0, 10, 0, 100, 120],
-             t2=[10, 100, 90, 110, 130],
-             data1=[0.2, 0.2, 0.1, 0.3, 0.2])
-    )
-    df_right = pd.DataFrame(
-        dict(id=[1, 2, 2, 2, 2, 3, 3, 3],
-             t1=[5, 10, 0, 100, 120, 10, 20, 30],
-             t2=[10, 80, 90, 110, 130, 30, 25, 35],
-             data2=[0.2, 0.2, 0.1, 0.3, 0.2, 0.3, 0.2, 0.1])
-    )
+    df_left = pd.read_csv("data/advanced_left.csv")
+    df_right = pd.read_csv("data/advanced_right.csv")
     return df_left, df_right

@@ -3,31 +3,15 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #     https://cecill.info/
-import matplotlib
+
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
-from cycler import cycler
 
-from crep import merge
+from crep import merge, unbalanced_merge, unbalanced_concat, aggregate_constant
+from crep import tools
 
-matplotlib.use("qt5agg")
 plt.style.use('./examples/.matplotlibrc')
-plt.rcParams['figure.figsize'] = [5.0, 5.0]
-plt.rcParams['figure.dpi'] = 200
-n = 8
-default_cycler = cycler('color',
-                        ['#0C5DA5', '#00B945', '#FF9500', '#FF2C00', '#845B97',
-                         '#474747', '#9e9e9e'])
-
-plt.style.use("bmh")
-plt.rcParams["font.family"] = "ubuntu"
-plt.rcParams['axes.facecolor'] = "white"
-plt.rcParams['axes.prop_cycle'] = default_cycler
-
-cmap = plt.get_cmap("rainbow_r")
-prop_cycle = plt.rcParams['axes.prop_cycle']
-colors = prop_cycle.by_key()['color']
-eta_cmap = "rocket_r"
 
 
 def plot(data: pd.DataFrame, continuous_index, data_col, color="C1",
@@ -39,39 +23,128 @@ def plot(data: pd.DataFrame, continuous_index, data_col, color="C1",
                  color=color, label=label)
 
 
-df_left = pd.DataFrame(
-    dict(id=[2, 2, 2],
-         t1=[0, 100, 120],
-         t2=[100, 120, 130],
-         data1=[0.2, 0.1, 0.3])
-)
-df_right = pd.DataFrame(
-    dict(id=[2, 2, 2],
-         t1=[0, 80, 100],
-         t2=[70, 100, 140],
-         data2=[0.1, 0.3, 0.2])
-)
+def illustrate_2_inputs(
+        function: callable,
+        df_left: pd.DataFrame,
+        df_right: pd.DataFrame,
+        parameters: dict,
+        id_discrete,
+        continuous_index,
+        data_columns=None,
 
-ret = merge(data_left=df_left,
-            data_right=df_right,
-            id_continuous=["t1", "t2"],
-            id_discrete=["id"],
-            how="outer")
+):
+    df_left = tools.sort(df_left, id_discrete=id_discrete, id_continuous=continuous_index)
+    df_right = tools.sort(df_right, id_discrete=id_discrete, id_continuous=continuous_index)
+    if data_columns is None:
+        df_left["data left"] = np.array(range(len(df_left))) / len(df_left)
+        df_right["data right"] = np.array(range(len(df_right))) / len(df_right) + 0.5
+        data_columns = ["data left", "data right"]
 
-_, axes = plt.subplots(nrows=2, sharex=True)
+    ret = function(df_left, df_right,
+                   id_continuous=continuous_index,
+                   id_discrete=id_discrete, **parameters)
 
-ret = ret[ret["id"] == 2]
-plt.sca(axes[0])
-plot(df_left, continuous_index=["t1", "t2"], data_col="data1", color="C1",
-     legend='data 1')
-plot(df_right, continuous_index=["t1", "t2"], data_col="data2", color="C2",
-     legend='data 2')
-plt.ylabel("raw data")
-plt.legend()
-plt.sca(axes[1])
-plot(ret, continuous_index=["t1", "t2"], data_col="data1", color="C1")
-plot(ret, continuous_index=["t1", "t2"], data_col="data2", color="C2")
-plt.xlabel("$t$")
-plt.ylabel("merged data")
-plt.legend()
-plt.savefig("examples/basic_example.png")
+    _, axes = plt.subplots(nrows=2, sharex=True)
+
+    sel = ret[id_discrete].drop_duplicates().iloc[-1:]
+    ret = pd.merge(ret, sel, how="right", on=id_discrete)
+    df_left = df_left.merge(sel, how="right", on=id_discrete)
+    df_right = df_right.merge(sel, how="right", on=id_discrete)
+
+    ret = tools.sort(ret, id_discrete=id_discrete, id_continuous=continuous_index)
+    ret[data_columns[0]] = ret[data_columns[0]] + (2 * np.mod(range(len(ret)), 2) - 1) * 0.005
+    ret[data_columns[1]] = ret[data_columns[1]] + (2 * np.mod(range(len(ret)), 2) - 1) * 0.005
+    plt.sca(axes[0])
+    plot(df_left, continuous_index, data_col=data_columns[0], color="C1", legend='data left')
+    plot(df_right, continuous_index, data_col=data_columns[1], color="C2", legend='data right')
+    plt.ylabel("raw data")
+    plt.legend()
+    plt.sca(axes[1])
+    plot(ret, continuous_index, data_col=data_columns[0], color="C1")
+    plot(ret, continuous_index, data_col=data_columns[1], color="C2")
+    plt.xlabel("$t$")
+    plt.ylabel(f"{function.__name__} func.")
+    plt.savefig(f"examples/{function.__name__}.png")
+
+
+def illustrate_1_input(
+        function: callable,
+        df: pd.DataFrame,
+        parameters: dict,
+        id_discrete,
+        continuous_index,
+        data_columns=None,
+
+):
+    df = tools.sort(df, id_discrete=id_discrete, id_continuous=continuous_index)
+    if data_columns is None:
+        df["data"] = np.array(range(len(df))) / len(df)
+        data_columns = ["data"]
+
+    ret = function(df,
+                   id_continuous=continuous_index,
+                   id_discrete=id_discrete, **parameters)
+
+    _, axes = plt.subplots(nrows=2, sharex=True)
+
+    sel = ret[id_discrete].drop_duplicates().iloc[-1:]
+    ret = pd.merge(ret, sel, how="right", on=id_discrete)
+    df = pd.merge(df, sel, how="right", on=id_discrete)
+
+    ret = tools.sort(ret, id_discrete=id_discrete, id_continuous=continuous_index)
+    ret[data_columns[0]] = ret[data_columns[0]] + (2 * np.mod(range(len(ret)), 2) - 1) * 0.005
+    plt.sca(axes[0])
+    plot(df, continuous_index, data_col=data_columns[0], color="C1", legend='data input')
+    plt.ylabel("raw data")
+    plt.legend()
+    plt.sca(axes[1])
+    plot(ret, continuous_index, data_col=data_columns[0], color="C1")
+    plt.xlabel("$t$")
+    plt.ylabel(f"{function.__name__} func.")
+    plt.savefig(f"examples/{function.__name__}.png")
+
+
+plt.ioff()
+illustrate_2_inputs(merge,
+                    pd.read_csv("data/base_left.csv"),
+                    pd.read_csv("data/base_right.csv"),
+                    dict(how="outer", ),
+                    id_discrete=["id"],
+                    continuous_index=["t1", "t2"]
+                    )
+illustrate_2_inputs(unbalanced_merge,
+                    pd.read_csv("data/base_left.csv"),
+                    pd.read_csv("data/base_right.csv"),
+                    dict(),
+                    id_discrete=["id"],
+                    continuous_index=["t1", "t2"]
+                    )
+illustrate_2_inputs(unbalanced_concat,
+                    pd.read_csv("data/base_left.csv"),
+                    pd.read_csv("data/base_right.csv"),
+                    dict(),
+                    id_discrete=["id"],
+                    continuous_index=["t1", "t2"]
+                    )
+
+illustrate_1_input(tools.build_admissible_data,
+                   pd.read_csv("data/base_left.csv"),
+                   dict(),
+                   id_discrete=["id"],
+                   continuous_index=["t1", "t2"]
+                   )
+
+illustrate_1_input(tools.build_admissible_data,
+                   pd.read_csv("data/base_left.csv"),
+                   dict(),
+                   id_discrete=["id"],
+                   continuous_index=["t1", "t2"]
+                   )
+
+illustrate_1_input(function=aggregate_constant,
+                   df=pd.read_csv("data/advanced_left.csv"),
+                   parameters=dict(),
+                   id_discrete=["id", "id2"],
+                   continuous_index=["t1", "t2"],
+                   data_columns=["data1"]
+                   )
