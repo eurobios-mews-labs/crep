@@ -30,7 +30,8 @@ ytick.right : True
 # Set line widths
 axes.linewidth : 0.5
 grid.linewidth : 0.5
-lines.linewidth : 1.
+grid.linestyle: --
+lines.linewidth : 2.
 axes.grid : True
 axes.grid.which: both
 
@@ -42,7 +43,7 @@ savefig.pad_inches : 0.05
 # Use serif fonts
 font.serif : Times
 font.family : serif
-mathtext.fontset : dejavuserif
+mathtext.fontset : cm
 
 # Use LaTeX for math formatting
 # text.usetex : True
@@ -52,3 +53,12 @@ mathtext.fontset : dejavuserif
 legend.frameon:       True
 legend.framealpha:    0.8      # legend patch transparency
 legend.facecolor:     inherit
+
+
+axes.titlesize: x-large
+legend.fancybox: True
+patch.antialiased: True
+patch.edgecolor: #eeeeee
+patch.facecolor: blue
+patch.linewidth: 0.5
+text.hinting_factor: 8

@@ -295,7 +295,8 @@ def unbalanced_concat(
     #   |--------------------|
     #          |-------------|
     # segment line n-1 starts before segment line n and segments line n-1 and line n end at the same point
-    c_resolve_3 = pd.Series((~c_out) & (df_idx[id_continuous[0]] > df_idx["__id1__"]) & (~c1_sup_id2) & ~df_idx["__id3__"].isna())
+    c_resolve_3 = pd.Series(
+        (~c_out) & (df_idx[id_continuous[0]] > df_idx["__id1__"]) & (~c1_sup_id2) & ~df_idx["__id3__"].isna())
 
     #        |----------|
     #   |--------------------|
@@ -468,7 +469,6 @@ def __merge_index(data_left, data_right,
                   names=("left", "right")):
     id_ = [*id_discrete, *id_continuous]
     id_c = id_continuous
-
 
     data_left = data_left.loc[:, id_].dropna()
     data_right = data_right.loc[:, id_].dropna()
@@ -721,6 +721,7 @@ def __merge(df_left: pd.DataFrame, df_right: pd.DataFrame,
         ~(df_merge[index_left] + df_merge[index_right] == -2)]
     return df_merge
 
+
 def __fix_discrete_index(
         data_left: pd.DataFrame,
         data_right: pd.DataFrame,
@@ -762,7 +763,7 @@ def suppress_duplicates(df, id_discrete, continuous_index):
     return df
 
 
-def _increasing_continuous_index(df: pd.DataFrame, id_continuous):
+def _increasing_continuous_index(df: pd.DataFrame, id_continuous: [Any, Any]):
     id1 = id_continuous[0]
     id2 = id_continuous[1]
     df[f"{id1}_new"] = df.loc[:, [id1, id2]].min(axis=1)
