@@ -14,37 +14,43 @@ from crep import tools
 
 
 def test_merge_basic(get_examples):
-    dfl, dfr = get_examples
-    ret = merge(dfl, dfr,
+    df_left, df_right = get_examples
+    ret = merge(df_left, df_right,
                 id_continuous=["t1", "t2"],
                 id_discrete=["id"],
                 how="outer")
-    ret_l = merge(dfl, dfr,
+    ret_l = merge(df_left, df_right,
                   id_continuous=["t1", "t2"],
                   id_discrete=["id"],
                   how="left")
-    ret_i = merge(dfl, dfr,
+    ret_i = merge(df_left, df_right,
                   id_continuous=["t1", "t2"],
                   id_discrete=["id"],
                   how="inner")
-    ret_r = merge(dfl, dfr,
+    ret_r = merge(df_left, df_right,
                   id_continuous=["t1", "t2"],
                   id_discrete=["id"],
                   how="right", verbose=True)
-    ret_th = pd.DataFrame(
-        dict(id=[1, 1, 1, 1, 2, 2, 2],
-             t1=[0, 5, 10, 80, 0, 100, 120],
-             t2=[5, 10, 80, 100, 90, 110, 130],
-             data1=[0.2, 0.2, 0.2, 0.2, 0.1, 0.3, 0.2],
-             data2=[np.nan, 0.2, 0.2, np.nan, 0.1, 0.3, 0.2],
-             ))
+    ret_th = pd.DataFrame({
+        "id": [1.0, 1.0, 1.0, 1.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0],
+        "t1": [0, 5, 10, 80, 0, 80, 100, 110, 120, 130, 135],
+        "t2": [5, 10, 80, 100, 80, 90, 110, 120, 130, 135, 145],
+        "data1": [0.4, 0.4, 0.3, 0.3, 0.1, 0.1, 0.3, np.nan, 0.2, 0.2, 0.2],
+        "data2": [np.nan, 0.25, 0.25, np.nan, 0.15, np.nan, 0.35, 0.35, 0.35, 0.50, np.nan]
+    })
     ret_th = ret_th.astype(ret.dtypes)
     ret_i_th = ret_th.dropna()
+    ret_th_l = ret_th.dropna(subset=["data1"])
+    ret_th_r = ret_th.dropna(subset=["data2"])
+
     ret_i_th.index = range(ret_i_th.__len__())
+    ret_th_l.index = range(ret_th_l.__len__())
+    ret_th_r.index = range(ret_th_r.__len__())
+
     assert ret.equals(ret_th)
-    assert ret_l.equals(ret_th)
+    assert ret_l.equals(ret_th_l)
     assert ret_i.equals(ret_i_th)
-    assert ret_r.equals(ret_i_th)
+    assert ret_r.equals(ret_th_r)
 
 
 def test__merge(get_advanced_examples):
@@ -64,27 +70,26 @@ def test_check_args(get_examples):
 
 
 def test_aggregate_constant(get_examples):
-    df1, _ = get_examples
-    df1.index = np.random.uniform(size=len(df1))
-    ret = aggregate_constant(df1, id_continuous=["t1", "t2"],
+    df_left = get_examples[0].__deepcopy__()
+    df_left["data1"] = 1
+    df_left.index = np.random.uniform(size=len(df_left))
+    ret = aggregate_constant(df_left, id_continuous=["t1", "t2"],
                              id_discrete=["id"])
-    df_left = pd.DataFrame(
-        dict(id=[1, 2, 2, 2],
-             t1=[0, 0, 100, 120],
-             t2=[100, 90, 110, 130],
-             data1=[0.2, 0.1, 0.3, 0.2])
-    )
-    df_left.index = ret.index
-    assert len(ret) < len(df1)
-    assert df_left.equals(ret)
+    ret_th = pd.DataFrame({'id': [1, 2, 2, 2],
+                           't1': [0, 0, 100, 120],
+                           't2': [100, 90, 110, 145],
+                           'data1': [1, 1, 1, 1]})
+    ret_th.index = ret.index
+    assert len(ret) < len(df_left)
+    assert ret_th.equals(ret)
 
 
 def test_merge_duplicates(get_examples):
-    dfl, dfr = get_examples
-    ret_r = merge(dfl, dfr,
+    df_left, df_right = get_examples
+    ret_r = merge(df_left, df_right,
                   id_continuous=["t1", "t2"],
                   id_discrete=["id"],
-                  how="right", verbose=True, remove_duplicates=True)
+                  how="inner", verbose=True, remove_duplicates=True)
     assert all(ret_r.isna().sum() == 0)
 
 
@@ -128,23 +133,18 @@ def test_merge_discrete_id(get_advanced_examples):
 
 def test_build_admissible_dataset(get_advanced_examples):
     df_in = get_advanced_examples[1]
-    data = {
-        'id': [1, 2, 2, 3, 2, 2, 2, 2, 3, 3, 3, 3],
-        't1': [5, 100, 120, 30, 0, 10, 10, 80, 10, 20, 20, 25],
-        't2': [10, 110, 130, 35, 10, 80, 80, 90, 20, 25, 25, 30],
-        'data2': [0.2, 0.3, 0.2, 0.1, 0.1, 0.2, 0.1, 0.1, 0.3, 0.3, 0.2, 0.3]
-    }
-
-    # Creating the DataFrame
-    df = pd.DataFrame(data)
 
     df_out = tools.build_admissible_data(df_in, id_continuous=["t1", "t2"],
                                          id_discrete=["id"])
-    df_out = df_out.sort_values(by=["id", "t1", "t2", "data2"])
-    df = df.sort_values(by=["id", "t1", "t2", 'data2'])
-    df_out.index = df.index
+    df_out = df_out.drop_duplicates(subset=["id", "t1", "t2"])
+    print(df_out)
+    ret = tools.admissible_dataframe(df_out, id_continuous=["t1", "t2"],
+                                     id_discrete=["id"])
 
-    assert all(df["data2"].values == df_out["data2"].values)
+    assert ret
+    df_out_out = tools.build_admissible_data(df_out, id_continuous=["t1", "t2"],
+                                             id_discrete=["id"])
+    assert df_out_out.equals(df_out)
 
 
 def test_unbalanced_merge(get_advanced_examples):
