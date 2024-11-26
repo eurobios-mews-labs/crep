@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 
 from crep import merge, unbalanced_merge, unbalanced_concat, aggregate_constant
-from crep import tools
+from crep import tools, base
 
 plt.style.use('./examples/.matplotlibrc')
 
@@ -74,6 +74,7 @@ def illustrate_1_input(
         id_discrete,
         continuous_index,
         data_columns=None,
+        as_string=False
 
 ):
     df = tools.sort(df, id_discrete=id_discrete, id_continuous=continuous_index)
@@ -84,15 +85,18 @@ def illustrate_1_input(
     ret = function(df,
                    id_continuous=continuous_index,
                    id_discrete=id_discrete, **parameters)
-
-    _, axes = plt.subplots(nrows=2, sharex=True)
+    if as_string:
+        ret[data_columns] = ret[data_columns].astype(str)
+    _, axes = plt.subplots(nrows=2, sharex=True, sharey=True)
 
     sel = ret[id_discrete].drop_duplicates().iloc[-1:]
     ret = pd.merge(ret, sel, how="right", on=id_discrete)
     df = pd.merge(df, sel, how="right", on=id_discrete)
 
-    ret = tools.sort(ret, id_discrete=id_discrete, id_continuous=continuous_index)
-    ret[data_columns[0]] = ret[data_columns[0]] + (2 * np.mod(range(len(ret)), 2) - 1) * 0.005
+    ret = ret.sort_values(by=data_columns)
+    ret[ret.select_dtypes(include='number').columns] = ret[ret.select_dtypes(include='number').columns].round(2)
+    if not as_string:
+        ret[data_columns[0]] = ret[data_columns[0]] + (3 * np.mod(range(len(ret)), 3) - 1) * 0.0008
     plt.sca(axes[0])
     plot(df, continuous_index, data_col=data_columns[0], color="C1", legend='data input')
     plt.ylabel("raw data")
@@ -100,7 +104,10 @@ def illustrate_1_input(
     plt.sca(axes[1])
     plot(ret, continuous_index, data_col=data_columns[0], color="C1")
     plt.xlabel("$t$")
-    plt.ylabel(f"{function.__name__} func.")
+    y_label = f"{function.__name__} func."
+    if len(str(parameters)) < 20:
+        y_label += f" \n {parameters}"
+    plt.ylabel(y_label)
     plt.savefig(f"examples/{function.__name__}.png")
 
 
@@ -147,4 +154,36 @@ illustrate_1_input(function=aggregate_constant,
                    id_discrete=["id", "id2"],
                    continuous_index=["t1", "t2"],
                    data_columns=["data1"]
+                   )
+
+illustrate_1_input(function=aggregate_constant,
+                   df=pd.read_csv("data/advanced_left.csv"),
+                   parameters=dict(),
+                   id_discrete=["id", "id2"],
+                   continuous_index=["t1", "t2"],
+                   data_columns=["data1"]
+                   )
+df = pd.read_csv("data/base_right.csv")
+df.loc[6] = [2.0, 170, 180, 0.5]
+illustrate_1_input(function=tools.create_continuity,
+                   df=df,
+                   parameters=dict(limit=30),
+                   id_discrete=["id"],
+                   continuous_index=["t1", "t2"],
+                   data_columns=["data2"],
+                   as_string=True
+                   )
+
+df = pd.read_csv("data/base_right.csv")
+df_seg = base.segmentation_regular(df, id_discrete=["id"],
+                                   id_continuous=["t1", "t2"],
+                                   length_target=7,
+                                   length_gap_filling=30)
+illustrate_1_input(function=base.aggregate,
+                   df=df,
+                   parameters=dict(df_target_segmentation=df_seg),
+                   id_discrete=["id"],
+                   continuous_index=["t1", "t2"],
+                   data_columns=["data2"],
+                   as_string=False
                    )

@@ -210,3 +210,8 @@ def test_name_simplifier():
     assert (new_names == ['discr1', 'discr2', 'cont1', 'cont2', 'max_date', 'mean_length', 'min_depth', 'sum_benefits',
                           'max_costs', 'mean_age']
             ), new_names
+
+
+def test_sort(get_examples):
+    df = tools.sort(get_examples[0], id_discrete=["id"], id_continuous=id_continuous)
+    assert all(np.sort(get_examples[0]["id"]) == df["id"].values)

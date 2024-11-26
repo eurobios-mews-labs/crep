@@ -181,7 +181,8 @@ def create_continuity(
         df: pd.DataFrame,
         id_discrete: Iterable[Any],
         id_continuous: [Any, Any],
-        limit=None, sort=False
+        limit=None,
+        sort=False
 ) -> pd.DataFrame:
     df_in = df.__deepcopy__()
     col_save = np.array(df_in.columns)
@@ -587,32 +588,6 @@ def clusterize(
             ["__cumul__", "__new_seg__", "__n_cut__", "__target__", "__%_a__", "__%_b__", "__%_min__"],
             axis=1)
         return df["__lim__"]
-
-
-def fill_duplicates_na(df, id_discrete: list[Any], id_continuous: [Any, Any]):
-    """ Fills duplicated rows with NaN by the value of the other duplicated row """
-    df = df.copy()
-    df = create_zones(df=df, id_discrete=id_discrete, id_continuous=id_continuous)
-    df = df.sort_values(by="__zone__").reset_index(drop=True)
-
-    mask0 = df["__zone__"].diff(-1) == 0
-    if mask0.sum() == 0:
-        raise Exception("The dataframe does not contain duplicated rows.")
-    mask = df.loc[mask0, :].isna().values
-    temp_df = df.loc[mask0, :].copy()
-    temp_df_shift = df.shift(-1).loc[mask0, :]
-    temp_df.loc[mask] = temp_df_shift.loc[mask]
-    df.loc[mask0, :] = temp_df
-
-    mask0 = df["__zone__"].diff(1) == 0
-    mask = df.loc[mask0, :].isna().values
-    temp_df = df.loc[mask0, :].copy()
-    temp_df_shift = df.shift(1).loc[mask0, :]
-    temp_df.loc[mask] = temp_df_shift.loc[mask]
-    df.loc[mask0, :] = temp_df
-
-    df = df.drop("__zone__", axis=1)
-    return df
 
 
 def sort(df: pd.DataFrame, id_discrete: list[Any], id_continuous: [Any, Any]) -> pd.DataFrame:

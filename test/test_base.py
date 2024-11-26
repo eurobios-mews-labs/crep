@@ -281,12 +281,49 @@ def test_split_segment():
         df=df,
         id_discrete=["discr1", "discr2"],
         id_continuous=["cont1", "cont2"],
-        target_size=50
+        target_size=50, verbose=True
     )
     assert \
         ((df_test["cont1"].to_list() == [50, 100, 40, 75, 120, 165, 210, 255, 300, 340, 50, 90, 143, 197, 250])
          & (df_test["cont2"].to_list() == [100, 150, 75, 120, 165, 210, 255, 300, 340, 380, 90, 143, 197, 250, 310])), \
         "\n" + str(df_test)
+
+
+def test_segmentation_regular(get_examples):
+    df_left, df_right = get_examples
+    id_continuous = ["t1", "t2"]
+    df = df_right
+    length_target = 7
+    length_minimal = 30
+    id_discrete = ["id"]
+    ret = base.segmentation_regular(
+        df,
+        id_discrete,
+        id_continuous,
+        length_target,
+        length_minimal,
+    )
+    length = ret["t2"] - ret["t1"]
+    assert np.abs(length.mean() - length_target).std() < 0.01
+
+
+def test_aggregate(get_examples):
+    df_left, df_right = get_examples
+    id_continuous = ["t1", "t2"]
+    df = df_right
+    length_target = 7
+    length_minimal = 30
+    id_discrete = ["id"]
+    df_target_segmentation = base.segmentation_regular(
+        df,
+        id_discrete,
+        id_continuous,
+        length_target,
+        length_minimal,
+    )
+    ret = base.aggregate(df, df_target_segmentation,
+                         id_discrete=id_discrete,
+                         id_continuous=id_continuous)
 
 
 def test_homogenize_within_case1():
