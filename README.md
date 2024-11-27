@@ -43,7 +43,7 @@ ret = merge(data_left=df_left,
 Yield the following result
 
 
-<img src="examples/basic_example.png" alt="drawing" width="350"/>
+<img src="examples/merge.png" alt="drawing" width="350"/>
 
 ## Tools
 

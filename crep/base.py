@@ -295,7 +295,8 @@ def unbalanced_concat(
     #   |--------------------|
     #          |-------------|
     # segment line n-1 starts before segment line n and segments line n-1 and line n end at the same point
-    c_resolve_3 = pd.Series((~c_out) & (df_idx[id_continuous[0]] > df_idx["__id1__"]) & (~c1_sup_id2) & ~df_idx["__id3__"].isna())
+    c_resolve_3 = pd.Series(
+        (~c_out) & (df_idx[id_continuous[0]] > df_idx["__id1__"]) & (~c1_sup_id2) & ~df_idx["__id3__"].isna())
 
     #        |----------|
     #   |--------------------|
@@ -468,7 +469,6 @@ def __merge_index(data_left, data_right,
                   names=("left", "right")):
     id_ = [*id_discrete, *id_continuous]
     id_c = id_continuous
-
 
     data_left = data_left.loc[:, id_].dropna()
     data_right = data_right.loc[:, id_].dropna()
@@ -721,6 +721,7 @@ def __merge(df_left: pd.DataFrame, df_right: pd.DataFrame,
         ~(df_merge[index_left] + df_merge[index_right] == -2)]
     return df_merge
 
+
 def __fix_discrete_index(
         data_left: pd.DataFrame,
         data_right: pd.DataFrame,
@@ -762,7 +763,7 @@ def suppress_duplicates(df, id_discrete, continuous_index):
     return df
 
 
-def _increasing_continuous_index(df: pd.DataFrame, id_continuous):
+def _increasing_continuous_index(df: pd.DataFrame, id_continuous: [Any, Any]):
     id1 = id_continuous[0]
     id2 = id_continuous[1]
     df[f"{id1}_new"] = df.loc[:, [id1, id2]].min(axis=1)
@@ -1267,3 +1268,93 @@ def homogenize_between(
     )
 
     return df1, df2
+
+
+def aggregate(
+        df: pd.DataFrame,
+        df_target_segmentation: pd.DataFrame,
+        id_discrete: list[Any],
+        id_continuous: [Any, Any],
+        method="weighted_mean"
+
+) -> pd.DataFrame:
+    df_target_segmentation = df_target_segmentation.__deepcopy__()
+    df_target_segmentation["index"] = range(len(df_target_segmentation))
+    ret = merge(df, df_target_segmentation, id_continuous=id_continuous, id_discrete=id_discrete,
+                how="outer")
+    ret = ret.infer_objects()
+    ret["__length__"] = ret[id_continuous[1]] - ret[id_continuous[0]]
+    df_ret = df_target_segmentation[["index"]].set_index("index")
+
+    column_number = df.drop(columns=[*id_discrete, *id_continuous]).select_dtypes(include='number').columns
+
+    for col in column_number:
+        ret[col] = ret[col] * ret["__length__"]
+        length = ret.dropna(subset=[col]).groupby("index")["__length__"].sum()
+        df_ret[col] = ret.groupby("index")[col].sum() / length
+
+    column_data = list(column_number)
+    df_data = df_ret[column_data]
+    df_data = pd.merge(df_data.reset_index(), df_target_segmentation, on="index")
+    df_data = df_data.drop(columns="index")
+    df_data = df_data[df.columns]
+    df_data = df_data.astype(df.dtypes)
+    return df_data
+
+
+def segmentation_irregular(
+        df: pd.DataFrame,
+        id_discrete: list[Any],
+        id_continuous: [Any, Any],
+        length_target,
+        length_minimal,
+) -> pd.DataFrame:
+    return df
+
+
+def segmentation_regular(
+        df: pd.DataFrame,
+        id_discrete: list[Any],
+        id_continuous: [Any, Any],
+        length_target,
+        length_gap_filling,
+) -> pd.DataFrame:
+    data = tools.create_continuity(
+        df.__deepcopy__(),
+        id_discrete=id_discrete,
+        id_continuous=id_continuous,
+        limit=length_gap_filling)
+    indexes = [*id_continuous, *id_discrete]
+
+    df_disc_f = data.groupby(id_discrete)[id_continuous[1]].max().reset_index()
+    df_disc_d = data.groupby(id_discrete)[id_continuous[0]].min().reset_index()
+    df_disc = pd.merge(df_disc_d, df_disc_f, on=id_discrete)
+    df_disc["nb_coupon"] = np.round((df_disc[id_continuous[1]] - df_disc[id_continuous[0]]) / length_target).astype(int)
+    df_disc["nb_coupon_cumsum"] = df_disc["nb_coupon"].cumsum()
+    df_disc["nb_coupon_cumsum0"] = 0
+    df_disc.loc[df_disc.index[1:], "nb_coupon_cumsum0"] = df_disc["nb_coupon_cumsum"].values[:-1]
+
+    # Create empty regular segment table and we fill it with regular segment
+    df_new = pd.DataFrame(index=range(df_disc["nb_coupon"].sum()),
+                          columns=id_discrete)
+
+    accumulator = {k: [] for k in indexes}
+
+    for ix in df_disc.index:
+        nb_cs = df_disc.loc[ix].to_dict()
+        value_temp = np.linspace(
+            nb_cs[id_continuous[0]],
+            nb_cs[id_continuous[1]],
+            num=int(nb_cs["nb_coupon"] + 1), dtype=int)
+
+        accumulator[id_continuous[0]] += list(value_temp[:-1])
+        accumulator[id_continuous[1]] += list(value_temp[1:])
+        for idd in id_discrete:
+            accumulator[idd] += list(np.array([nb_cs[idd]] * len(value_temp[1:])))
+
+    for index in indexes:
+        df_new[index] = accumulator[index]
+
+    df_new.index = range(len(df_new))
+
+    return df_new

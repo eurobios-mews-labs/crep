@@ -4,8 +4,8 @@
 # You may obtain a copy of the License at
 #     https://cecill.info/
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 
 from crep import tools
 
@@ -80,18 +80,18 @@ def test_create_continuity(get_examples):
 
 def test_mark_new_segment():
     df = pd.DataFrame({"discr1": [1000, 1000, 1000, 1000, 1000, 2000, 2000, 2000],
-                        "discr2": [1] * 2 + [2] * 3 + [1] * 3,
-                        "cont1": [50, 100, 50, 100, 150, 50, 100, 150],
-                        "cont2": [100, 150, 100, 150, 200, 100, 150, 200]})
+                       "discr2": [1] * 2 + [2] * 3 + [1] * 3,
+                       "cont1": [50, 100, 50, 100, 150, 50, 100, 150],
+                       "cont2": [100, 150, 100, 150, 200, 100, 150, 200]})
     new_segm = tools.mark_new_segment(df, id_discrete=["discr1", "discr2"], id_continuous=["cont1", "cont2"])
     assert new_segm.to_list() == [True, False, True, False, False, True, False, False], "\n" + str(new_segm)
 
 
 def test_cumul_segment_length():
     df = pd.DataFrame({"discr1": [1000, 1000, 1000, 1000, 1000, 2000, 2000, 2000],
-                        "discr2": [1] * 2 + [2] * 3 + [1] * 3,
-                        "cont1": [50, 100, 50, 100, 150, 50, 100, 150],
-                        "cont2": [100, 150, 100, 150, 200, 100, 150, 200]})
+                       "discr2": [1] * 2 + [2] * 3 + [1] * 3,
+                       "cont1": [50, 100, 50, 100, 150, 50, 100, 150],
+                       "cont2": [100, 150, 100, 150, 200, 100, 150, 200]})
 
     cumul = tools.cumul_segment_length(df, id_discrete=["discr1", "discr2"], id_continuous=["cont1", "cont2"])
     assert cumul.to_list() == [50, 100, 50, 100, 150, 50, 100, 150], "\n" + str(cumul)
@@ -99,10 +99,10 @@ def test_cumul_segment_length():
 
 def test_concretize_aggregation():
     df = pd.DataFrame({"discr1": [1000, 1000, 1000, 1000, 1000, 2000, 2000, 2000],
-                        "discr2": [1] * 2 + [2] * 3 + [1] * 3,
-                        "cont1": [50, 100, 50, 100, 150, 50, 100, 150],
-                        "cont2": [100, 150, 100, 150, 200, 100, 150, 200],
-                        "date": [2008, 2010, 2014, 2016, 2018, 2020, 2022, 2024]})
+                       "discr2": [1] * 2 + [2] * 3 + [1] * 3,
+                       "cont1": [50, 100, 50, 100, 150, 50, 100, 150],
+                       "cont2": [100, 150, 100, 150, 200, 100, 150, 200],
+                       "date": [2008, 2010, 2014, 2016, 2018, 2020, 2022, 2024]})
     df_test = tools.concretize_aggregation(
         df,
         id_discrete=["discr1", "discr2"],
@@ -119,10 +119,10 @@ def test_concretize_aggregation():
 
 def test_n_cut_finder_case1():
     df = pd.DataFrame({"discr1": [1000] * 8 + [2000] * 4,
-                        "discr2": [1] * 4 + [2] * 4 + [1] * 4,
-                        "cont1": [50, 100, 150, 200, 40, 75, 135, 178, 50, 90, 150, 210],
-                        "cont2": [100, 150, 200, 250, 75, 135, 178, 211, 90, 150, 210, 280],
-                        "date": list(range(2000, 2024, 2))})
+                       "discr2": [1] * 4 + [2] * 4 + [1] * 4,
+                       "cont1": [50, 100, 150, 200, 40, 75, 135, 178, 50, 90, 150, 210],
+                       "cont2": [100, 150, 200, 250, 75, 135, 178, 211, 90, 150, 210, 280],
+                       "date": list(range(2000, 2024, 2))})
     n_cut = tools.n_cut_finder(
         df=df,
         id_discrete=["discr1", "discr2"],
@@ -136,9 +136,9 @@ def test_n_cut_finder_case1():
 
 def test_n_cut_finder_case2():
     df = pd.DataFrame({"discr1": [1000] * 5 + [2000] * 3,
-                        "discr2": [1] * 2 + [2] * 3 + [1] * 3,
-                        "cont1": [50, 100, 40, 75, 300, 50, 90, 250],
-                        "cont2": [100, 150, 75, 300, 380, 90, 250, 310]})
+                       "discr2": [1] * 2 + [2] * 3 + [1] * 3,
+                       "cont1": [50, 100, 40, 75, 300, 50, 90, 250],
+                       "cont2": [100, 150, 75, 300, 380, 90, 250, 310]})
     n_cut = tools.n_cut_finder(
         df=df,
         id_discrete=["discr1", "discr2"],
@@ -151,25 +151,25 @@ def test_n_cut_finder_case2():
 
 def test_clusterize_case1():
     df = pd.DataFrame({"discr1": [1000] * 8 + [2000] * 4,
-                        "discr2": [1] * 4 + [2] * 4 + [1] * 4,
-                        "cont1": [50, 100, 150, 200, 40, 75, 135, 178, 50, 90, 150, 210],
-                        "cont2": [100, 150, 200, 250, 75, 135, 178, 211, 90, 150, 210, 280],
-                        "date": list(range(2000, 2024, 2))})
+                       "discr2": [1] * 4 + [2] * 4 + [1] * 4,
+                       "cont1": [50, 100, 150, 200, 40, 75, 135, 178, 50, 90, 150, 210],
+                       "cont2": [100, 150, 200, 250, 75, 135, 178, 211, 90, 150, 210, 280],
+                       "date": list(range(2000, 2024, 2))})
     lim = tools.clusterize(
         df=df,
         id_discrete=["discr1", "discr2"],
         id_continuous=["cont1", "cont2"],
         target_size=140
     )
-    assert lim.to_list() == [1, 1, 2, 2, 3, 3, 3, 3, 4, 4, 5, 5],  "\n" + str(lim)
+    assert lim.to_list() == [1, 1, 2, 2, 3, 3, 3, 3, 4, 4, 5, 5], "\n" + str(lim)
 
 
 def test_clusterize_case2():
     df = pd.DataFrame({"discr1": [830341] * 4,
-                        "discr2": ["v2"] * 4,
-                        "cont1": [637, 704, 634008, 634062],
-                        "cont2": [704, 789, 634062, 634130],
-                        "date": [2000, 2002, 2004, 2006]})
+                       "discr2": ["v2"] * 4,
+                       "cont1": [637, 704, 634008, 634062],
+                       "cont2": [704, 789, 634062, 634130],
+                       "date": [2000, 2002, 2004, 2006]})
     lim = tools.clusterize(
         df=df,
         id_discrete=["discr1", "discr2"],
@@ -203,10 +203,15 @@ def test_create_continuity_limit():
 
 
 def test_name_simplifier():
-    names = ["discr1", "discr2", "cont1", "cont2", "max_date", "mean_length", "min_depth", "sum_benefits", "max_mean_costs",
+    names = ["discr1", "discr2", "cont1", "cont2", "max_date", "mean_length", "min_depth", "sum_benefits",
+             "max_mean_costs",
              "mean_mean_age"]
     new_names = tools.name_simplifier(names)
     assert (new_names == ['discr1', 'discr2', 'cont1', 'cont2', 'max_date', 'mean_length', 'min_depth', 'sum_benefits',
                           'max_costs', 'mean_age']
             ), new_names
 
+
+def test_sort(get_examples):
+    df = tools.sort(get_examples[0], id_discrete=["id"], id_continuous=id_continuous)
+    assert all(np.sort(get_examples[0]["id"]) == df["id"].values)
