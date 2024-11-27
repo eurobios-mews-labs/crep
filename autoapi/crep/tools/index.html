@@ -310,7 +310,7 @@
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crep.tools.concretize_aggregation"><code class="docutils literal notranslate"><span class="pre">concretize_aggregation()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crep.tools.n_cut_finder"><code class="docutils literal notranslate"><span class="pre">n_cut_finder()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crep.tools.clusterize"><code class="docutils literal notranslate"><span class="pre">clusterize()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crep.tools.fill_duplicates_na"><code class="docutils literal notranslate"><span class="pre">fill_duplicates_na()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crep.tools.sort"><code class="docutils literal notranslate"><span class="pre">sort()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -367,7 +367,7 @@
 <td><p>Creates a boolean pd.Series aligning with df indices. True: there is a change any of the id_discrete</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#crep.tools.cumul_segment_length" title="crep.tools.cumul_segment_length"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cumul_segment_length</span></code></a>(→ pandas.Series)</p></td>
-<td><p>Computes cumulative sum of segment length for each unique combination of id_discrete.</p></td>
+<td><p>TODO : compute_cumulated_length</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#crep.tools.concretize_aggregation" title="crep.tools.concretize_aggregation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">concretize_aggregation</span></code></a>(→ pandas.DataFrame)</p></td>
 <td><p>Groupby + aggregation operations</p></td>
@@ -376,10 +376,10 @@
 <td><p>Finds in how many sub-segments the segment should be cut (method = &quot;split&quot;) or find where to stop the aggregation of</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#crep.tools.clusterize" title="crep.tools.clusterize"><code class="xref py py-obj docutils literal notranslate"><span class="pre">clusterize</span></code></a>(→ pandas.Series)</p></td>
-<td><p>Defines where to limit segment aggregation when uniformizing segment size to target size.</p></td>
+<td><p>TODO: create_cluster_by_size</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#crep.tools.fill_duplicates_na" title="crep.tools.fill_duplicates_na"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fill_duplicates_na</span></code></a>(df, id_discrete, id_continuous)</p></td>
-<td><p>Fills duplicated rows with NaN by the value of the other duplicated row</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#crep.tools.sort" title="crep.tools.sort"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sort</span></code></a>(→ pandas.DataFrame)</p></td>
+<td><p></p></td>
 </tr>
 </tbody>
 </table>
@@ -515,7 +515,8 @@ Seems to be equivalent to crep.tools.compute_discontinuity</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="crep.tools.cumul_segment_length">
 <span class="sig-prename descclassname"><span class="pre">crep.tools.</span></span><span class="sig-name descname"><span class="pre">cumul_segment_length</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_discrete</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_continuous</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">pandas.Series</span></span></span><a class="headerlink" href="#crep.tools.cumul_segment_length" title="Link to this definition">#</a></dt>
-<dd><p>Computes cumulative sum of segment length for each unique combination of id_discrete.</p>
+<dd><p>TODO : compute_cumulated_length
+Computes cumulative sum of segment length for each unique combination of id_discrete.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -618,7 +619,8 @@ split: series with integers &gt;= 1. They indicate in how many segments the curr
 <dl class="py function">
 <dt class="sig sig-object py" id="crep.tools.clusterize">
 <span class="sig-prename descclassname"><span class="pre">crep.tools.</span></span><span class="sig-name descname"><span class="pre">clusterize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_discrete</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_continuous</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">pandas.Series</span></span></span><a class="headerlink" href="#crep.tools.clusterize" title="Link to this definition">#</a></dt>
-<dd><p>Defines where to limit segment aggregation when uniformizing segment size to target size.</p>
+<dd><p>TODO: create_cluster_by_size
+Defines where to limit segment aggregation when uniformizing segment size to target size.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -648,10 +650,9 @@ split: series with integers &gt;= 1. They indicate in how many segments the curr
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="crep.tools.fill_duplicates_na">
-<span class="sig-prename descclassname"><span class="pre">crep.tools.</span></span><span class="sig-name descname"><span class="pre">fill_duplicates_na</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_discrete</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_continuous</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#crep.tools.fill_duplicates_na" title="Link to this definition">#</a></dt>
-<dd><p>Fills duplicated rows with NaN by the value of the other duplicated row</p>
-</dd></dl>
+<dt class="sig sig-object py" id="crep.tools.sort">
+<span class="sig-prename descclassname"><span class="pre">crep.tools.</span></span><span class="sig-name descname"><span class="pre">sort</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_discrete</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_continuous</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">pandas.DataFrame</span></span></span><a class="headerlink" href="#crep.tools.sort" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
 
 </section>
 </section>
@@ -711,7 +712,7 @@ split: series with integers &gt;= 1. They indicate in how many segments the curr
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crep.tools.concretize_aggregation"><code class="docutils literal notranslate"><span class="pre">concretize_aggregation()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crep.tools.n_cut_finder"><code class="docutils literal notranslate"><span class="pre">n_cut_finder()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crep.tools.clusterize"><code class="docutils literal notranslate"><span class="pre">clusterize()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crep.tools.fill_duplicates_na"><code class="docutils literal notranslate"><span class="pre">fill_duplicates_na()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crep.tools.sort"><code class="docutils literal notranslate"><span class="pre">sort()</span></code></a></li>
 </ul>
 </li>
 </ul>

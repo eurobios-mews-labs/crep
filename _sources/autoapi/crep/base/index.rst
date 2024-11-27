@@ -28,6 +28,9 @@ Functions
    crep.base.split_segment
    crep.base.homogenize_within
    crep.base.homogenize_between
+   crep.base.aggregate
+   crep.base.segmentation_irregular
+   crep.base.segmentation_regular
 
 
 Module Contents
@@ -325,7 +328,7 @@ Module Contents
 
 .. py:function:: suppress_duplicates(df, id_discrete, continuous_index)
 
-.. py:function:: _increasing_continuous_index(df: pandas.DataFrame, id_continuous)
+.. py:function:: _increasing_continuous_index(df: pandas.DataFrame, id_continuous: [Any, Any])
 
 .. py:function:: __refactor_data(data_left, data_right, id_continuous, id_discrete, names=('left', 'right'))
 
@@ -587,4 +590,10 @@ Module Contents
 
    ..
        !! processed by numpydoc !!
+
+.. py:function:: aggregate(df: pandas.DataFrame, df_target_segmentation: pandas.DataFrame, id_discrete: list[Any], id_continuous: [Any, Any], method='weighted_mean') -> pandas.DataFrame
+
+.. py:function:: segmentation_irregular(df: pandas.DataFrame, id_discrete: list[Any], id_continuous: [Any, Any], length_target, length_minimal) -> pandas.DataFrame
+
+.. py:function:: segmentation_regular(df: pandas.DataFrame, id_discrete: list[Any], id_continuous: [Any, Any], length_target, length_gap_filling) -> pandas.DataFrame
 

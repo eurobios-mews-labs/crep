@@ -314,6 +314,9 @@
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crep.base.split_segment"><code class="docutils literal notranslate"><span class="pre">split_segment()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crep.base.homogenize_within"><code class="docutils literal notranslate"><span class="pre">homogenize_within()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crep.base.homogenize_between"><code class="docutils literal notranslate"><span class="pre">homogenize_between()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crep.base.aggregate"><code class="docutils literal notranslate"><span class="pre">aggregate()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crep.base.segmentation_irregular"><code class="docutils literal notranslate"><span class="pre">segmentation_irregular()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crep.base.segmentation_regular"><code class="docutils literal notranslate"><span class="pre">segmentation_regular()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -389,6 +392,15 @@
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#crep.base.homogenize_between" title="crep.base.homogenize_between"><code class="xref py py-obj docutils literal notranslate"><span class="pre">homogenize_between</span></code></a>(→ tuple[pandas.DataFrame, ...)</p></td>
 <td><p>If the ratio of max segment size in one dataframe and min segment size in the other dataframe &gt; 2, it may create</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#crep.base.aggregate" title="crep.base.aggregate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">aggregate</span></code></a>(→ pandas.DataFrame)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#crep.base.segmentation_irregular" title="crep.base.segmentation_irregular"><code class="xref py py-obj docutils literal notranslate"><span class="pre">segmentation_irregular</span></code></a>(→ pandas.DataFrame)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#crep.base.segmentation_regular" title="crep.base.segmentation_regular"><code class="xref py py-obj docutils literal notranslate"><span class="pre">segmentation_regular</span></code></a>(→ pandas.DataFrame)</p></td>
+<td><p></p></td>
 </tr>
 </tbody>
 </table>
@@ -600,7 +612,7 @@ this interval for each discrete group.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="crep.base._increasing_continuous_index">
-<span class="sig-prename descclassname"><span class="pre">crep.base.</span></span><span class="sig-name descname"><span class="pre">_increasing_continuous_index</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_continuous</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#crep.base._increasing_continuous_index" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">crep.base.</span></span><span class="sig-name descname"><span class="pre">_increasing_continuous_index</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_continuous</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#crep.base._increasing_continuous_index" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
@@ -791,6 +803,21 @@ row 4: from df2 45-85
 </dl>
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="crep.base.aggregate">
+<span class="sig-prename descclassname"><span class="pre">crep.base.</span></span><span class="sig-name descname"><span class="pre">aggregate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df_target_segmentation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_discrete</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_continuous</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'weighted_mean'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">pandas.DataFrame</span></span></span><a class="headerlink" href="#crep.base.aggregate" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="crep.base.segmentation_irregular">
+<span class="sig-prename descclassname"><span class="pre">crep.base.</span></span><span class="sig-name descname"><span class="pre">segmentation_irregular</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_discrete</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_continuous</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">length_target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">length_minimal</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">pandas.DataFrame</span></span></span><a class="headerlink" href="#crep.base.segmentation_irregular" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="crep.base.segmentation_regular">
+<span class="sig-prename descclassname"><span class="pre">crep.base.</span></span><span class="sig-name descname"><span class="pre">segmentation_regular</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_discrete</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_continuous</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">length_target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">length_gap_filling</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">pandas.DataFrame</span></span></span><a class="headerlink" href="#crep.base.segmentation_regular" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
 </section>
 </section>
 
@@ -861,6 +888,9 @@ row 4: from df2 45-85
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crep.base.split_segment"><code class="docutils literal notranslate"><span class="pre">split_segment()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crep.base.homogenize_within"><code class="docutils literal notranslate"><span class="pre">homogenize_within()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crep.base.homogenize_between"><code class="docutils literal notranslate"><span class="pre">homogenize_between()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crep.base.aggregate"><code class="docutils literal notranslate"><span class="pre">aggregate()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crep.base.segmentation_irregular"><code class="docutils literal notranslate"><span class="pre">segmentation_irregular()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crep.base.segmentation_regular"><code class="docutils literal notranslate"><span class="pre">segmentation_regular()</span></code></a></li>
 </ul>
 </li>
 </ul>

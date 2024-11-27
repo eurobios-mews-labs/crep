@@ -25,7 +25,7 @@ Functions
    crep.tools.concretize_aggregation
    crep.tools.n_cut_finder
    crep.tools.clusterize
-   crep.tools.fill_duplicates_na
+   crep.tools.sort
 
 
 Module Contents
@@ -198,6 +198,7 @@ Module Contents
 .. py:function:: cumul_segment_length(df: pandas.DataFrame, id_discrete: list[Any], id_continuous: [Any, Any]) -> pandas.Series
 
    
+   TODO : compute_cumulated_length
    Computes cumulative sum of segment length for each unique combination of id_discrete.
 
 
@@ -341,6 +342,7 @@ Module Contents
 .. py:function:: clusterize(df: pandas.DataFrame, id_discrete: list[Any], id_continuous: [Any, Any], target_size: int) -> pandas.Series
 
    
+   TODO: create_cluster_by_size
    Defines where to limit segment aggregation when uniformizing segment size to target size.
 
 
@@ -382,26 +384,5 @@ Module Contents
    ..
        !! processed by numpydoc !!
 
-.. py:function:: fill_duplicates_na(df, id_discrete: list[Any], id_continuous: [Any, Any])
-
-   
-   Fills duplicated rows with NaN by the value of the other duplicated row 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-   ..
-       !! processed by numpydoc !!
+.. py:function:: sort(df: pandas.DataFrame, id_discrete: list[Any], id_continuous: [Any, Any]) -> pandas.DataFrame
 
