@@ -11,7 +11,7 @@ from crep import tools
 
 id_discrete, id_continuous = ["id", "id2"], ["t1", "t2"]
 
-data = pd.read_csv("examples/data/data_zones.csv")
+data = pd.read_csv("../examples/data/data_zones.csv")
 
 
 def test_no_overlapping(get_examples):
@@ -93,7 +93,7 @@ def test_cumul_segment_length():
                        "cont1": [50, 100, 50, 100, 150, 50, 100, 150],
                        "cont2": [100, 150, 100, 150, 200, 100, 150, 200]})
 
-    cumul = tools.cumul_segment_length(df, id_discrete=["discr1", "discr2"], id_continuous=["cont1", "cont2"])
+    cumul = tools.compute_cumulated_length(df, id_discrete=["discr1", "discr2"], id_continuous=["cont1", "cont2"])
     assert cumul.to_list() == [50, 100, 50, 100, 150, 50, 100, 150], "\n" + str(cumul)
 
 
