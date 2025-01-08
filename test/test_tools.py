@@ -11,7 +11,7 @@ from crep import tools
 
 id_discrete, id_continuous = ["id", "id2"], ["t1", "t2"]
 
-data = pd.read_csv("../examples/data/data_zones.csv")
+data = pd.read_csv("examples/data/data_zones.csv")
 
 
 def test_no_overlapping(get_examples):

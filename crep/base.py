@@ -1438,8 +1438,8 @@ def segmentation_regular(
 
 
 def fill_segmentation(
-        df_segm: pd.DataFrame,
-        df_feat: pd.DataFrame,
+        df_segmentation: pd.DataFrame,
+        df_features: pd.DataFrame,
         id_discrete: list[str],
         id_continuous: list[str],
         dict_agg: dict[str, list[str]] | None = None
@@ -1449,9 +1449,9 @@ def fill_segmentation(
 
     Parameters
     ----------
-    df_segm: pd.DataFrame
+    df_segmentation: pd.DataFrame
         the dataframe containing the segmentation. Should contain only columns id_discrete and id_continuous
-    df_feat: pd.DataFrame
+    df_features: pd.DataFrame
         the dataframe containing the features to fit to the segmentation. Should contain the columns
         id_discrete and id_continuous as well as other columns for the features of interest.
     id_discrete
@@ -1465,14 +1465,14 @@ def fill_segmentation(
     """
     # verification of requirements
     for col in id_continuous + id_discrete:
-        if col not in df_segm.columns or col not in df_feat.columns:
+        if col not in df_segmentation.columns or col not in df_features.columns:
             raise Exception(f"Error: {col} is not present in both dataframes df_segm and df_feat.")
 
     is_df_segm_admissible = tools.admissible_dataframe(
-        data=df_segm, id_discrete=id_discrete, id_continuous=id_continuous
+        data=df_segmentation, id_discrete=id_discrete, id_continuous=id_continuous
     )
     is_df_feat_admissible = tools.admissible_dataframe(
-        data=df_feat, id_discrete=id_discrete, id_continuous=id_continuous
+        data=df_features, id_discrete=id_discrete, id_continuous=id_continuous
     )
     if not is_df_segm_admissible or not is_df_feat_admissible:
         raise Exception("Error: Both dataframes should be admissible:"
@@ -1481,9 +1481,9 @@ def fill_segmentation(
 
     # homogenize_between() reduces the difference in segment size between df_feat and df_segm. More precisely, it
     # adjusts df_feat to df_segm. This may reduce the risk of error when using merge().
-    df_segm, df_feat = homogenize_between(
-        df1=df_segm,
-        df2=df_feat,
+    df_segmentation, df_features = homogenize_between(
+        df1=df_segmentation,
+        df2=df_features,
         id_discrete=id_discrete,
         id_continuous=id_continuous,
         dict_agg_df1=None,
@@ -1492,13 +1492,13 @@ def fill_segmentation(
         verbose=False
     )
 
-    df_segm["__id__"] = 1
-    df_segm["__id__"] = df_segm["__id__"].cumsum()
+    df_segmentation["__id__"] = 1
+    df_segmentation["__id__"] = df_segmentation["__id__"].cumsum()
 
     # merging the segmentations in both df
     df_merge = merge(
-        data_left=df_segm,
-        data_right=df_feat,
+        data_left=df_segmentation,
+        data_right=df_features,
         id_continuous=id_continuous,
         id_discrete=id_discrete,
         how="left",

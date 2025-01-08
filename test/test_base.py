@@ -849,8 +849,8 @@ def test_fill_segmentation():
                             "data2": [1, 0, 1, 1, 0, 1, 0, 0],
                             })
     df_test = fill_segmentation(
-        df_segm=df_segm,
-        df_feat=df_feat,
+        df_segmentation=df_segm,
+        df_features=df_feat,
         id_discrete=["discr1"],
         id_continuous=["cont1", "cont2"],
         dict_agg={"mean": ["data1"], "sum": ["data2"]}
