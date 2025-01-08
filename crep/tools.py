@@ -3,11 +3,11 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #     https://cecill.info/
+import warnings
+from typing import Any, Iterable, Literal
+
 import numpy as np
 import pandas as pd
-import warnings
-
-from typing import Any, Iterable, Literal
 
 
 def build_admissible_data(
@@ -37,7 +37,7 @@ def build_admissible_data(
     df_ret[id_continuous[1]] = df_ret[id_continuous[1]].astype(df[id_continuous[1]].dtype)
 
     df_ret = pd.merge(df_ret, df_add_non_admissible,
-                      on=id_discrete + ["__zone__"], suffixes=("", "_tmp"))
+                      on=list(id_discrete) + ["__zone__"], suffixes=("", "_tmp"))
     id_continuous_tmp = [str(i) + "_tmp" for i in id_continuous]
     c = df_ret[id_continuous[0]] < df_ret[id_continuous_tmp[1]]
     c &= df_ret[id_continuous[1]] > df_ret[id_continuous_tmp[0]]
@@ -117,7 +117,7 @@ def create_zones(
     df_out.loc[df_out.index[1:], "__id2_prev__"] = df_out.loc[df_out.index[:-1], id_continuous[1]].values
     c_inner = df_out[id_continuous[0]] >= df_out["__id2_prev__"]
 
-    c_disc = df_out[id_discrete].iloc[1:].values == df_out[id_discrete].iloc[:-1].values
+    c_disc = np.array(df_out[id_discrete].iloc[1:].values == df_out[id_discrete].iloc[:-1].values)
     c_disc = c_disc.mean(axis=1) == 1
     c_disc = ~ np.concatenate(([True], c_disc))
 
@@ -181,7 +181,8 @@ def create_continuity(
         df: pd.DataFrame,
         id_discrete: Iterable[Any],
         id_continuous: [Any, Any],
-        limit=None, sort=False
+        limit=None,
+        sort=False
 ) -> pd.DataFrame:
     df_in = df.__deepcopy__()
     col_save = np.array(df_in.columns)
@@ -217,7 +218,7 @@ def create_continuity_modified(
     if df_in["discontinuity"].sum() == 0:
         return df
     else:
-        mask = (df[id_discrete].eq(df[id_discrete].shift())).sum(axis=1) < len(id_discrete)
+        mask = (df[id_discrete].eq(df[id_discrete].shift())).sum(axis=1) < len(list(id_discrete))
         ix__ = np.where(df_in["discontinuity"].values & ~mask)[0]
         df_add = pd.DataFrame(columns=df_in.columns, index=range(len(ix__)))
         df_add[index] = df_in.iloc[ix__][index].values
@@ -287,6 +288,7 @@ def cumul_segment_length(
         id_continuous: [Any, Any]
 ) -> pd.Series:
     """
+    TODO : compute_cumulated_length
     Computes cumulative sum of segment length for each unique combination of id_discrete.
 
     Parameters
@@ -360,11 +362,13 @@ def concretize_aggregation(
 
     drop_cols = set()  # columns that should be removed at the end ot the process
     df_gr = []  # list of dataframes that will further be concatenated
-    colnames = []  # names of new columns
+    col_names = []  # names of new columns
 
     group_by = id_discrete
-    if type(add_group_by) is str: group_by = group_by + [add_group_by]
-    elif type(add_group_by) is list: group_by = group_by + add_group_by
+    if type(add_group_by) is str:
+        group_by = group_by + [add_group_by]
+    elif type(add_group_by) is list:
+        group_by = group_by + add_group_by
 
     if dict_agg is None:
         warnings.warn("dict_agg not specified. Default aggregation operator set to 'mean' for all features.")
@@ -372,10 +376,14 @@ def concretize_aggregation(
         dict_agg = {"mean": columns}
 
     # define id_continuous agg operators
-    if "min" in dict_agg.keys(): dict_agg["min"].append(id_continuous[0])
-    else:  dict_agg["min"] = [id_continuous[0]]
-    if "max" in dict_agg.keys(): dict_agg["max"].append(id_continuous[1])
-    else: dict_agg["max"] = [id_continuous[1]]
+    if "min" in dict_agg.keys():
+        dict_agg["min"].append(id_continuous[0])
+    else:
+        dict_agg["min"] = [id_continuous[0]]
+    if "max" in dict_agg.keys():
+        dict_agg["max"].append(id_continuous[1])
+    else:
+        dict_agg["max"] = [id_continuous[1]]
 
     for i, items in enumerate(dict_agg.items()):
         k, v = items
@@ -396,13 +404,13 @@ def concretize_aggregation(
         else:
             data = df[group_by + v].groupby(by=group_by).agg(k).reset_index().drop(group_by, axis=1)
             df_gr.append(data)
-        colnames += [f"{k}_" + col for col in v]
+        col_names += [f"{k}_" + col for col in v]
         for col in v:
             drop_cols.add(col)
 
     # concatenation of all groupby dataframes
     df_gr = pd.concat(df_gr, axis=1)
-    df_gr.columns = name_simplifier(colnames)
+    df_gr.columns = name_simplifier(col_names)
     df = df.drop(list(drop_cols), axis=1)
     df = df.drop_duplicates(group_by).reset_index(drop=True)
     df = pd.concat([df, df_gr], axis=1)
@@ -429,7 +437,8 @@ def n_cut_finder(
 ) -> pd.Series:
     """
     Finds in how many sub-segments the segment should be cut (method = "split") or find where to stop the aggregation of
-    segments into a super segment (method = "agg"). The returned value of the function is the pd.Series of the column __n_cut__
+    segments into a super segment (method = "agg"). The returned value of the function is the pd.Series of the column
+     __n_cut__
 
     If method is "agg", the __n_cut__ contains non-NaN value everywhere but in the last row before a change of
     id_discrete value. The non-NaN values represent how many super-segments should result from the aggregation of the
@@ -492,6 +501,7 @@ def clusterize(
         target_size: int,
 ) -> pd.Series:
     """
+    TODO: create_cluster_by_size
     Defines where to limit segment aggregation when uniformizing segment size to target size.
 
     Parameters
@@ -580,29 +590,5 @@ def clusterize(
         return df["__lim__"]
 
 
-def fill_duplicates_na(df, id_discrete: list[Any], id_continuous: [Any, Any]):
-    """ Fills duplicated rows with NaN by the value of the other duplicated row """
-    df = df.copy()
-    df = create_zones(df=df, id_discrete=id_discrete, id_continuous=id_continuous)
-    df = df.sort_values(by="__zone__").reset_index(drop=True)
-
-    mask0 = df["__zone__"].diff(-1) == 0
-    if mask0.sum() == 0:
-        raise Exception("The dataframe does not contain duplicated rows.")
-    mask = df.loc[mask0, :].isna().values
-    temp_df = df.loc[mask0, :].copy()
-    temp_df_shift = df.shift(-1).loc[mask0, :]
-    temp_df.loc[mask] = temp_df_shift.loc[mask]
-    df.loc[mask0, :] = temp_df
-
-    mask0 = df["__zone__"].diff(1) == 0
-    mask = df.loc[mask0, :].isna().values
-    temp_df = df.loc[mask0, :].copy()
-    temp_df_shift = df.shift(1).loc[mask0, :]
-    temp_df.loc[mask] = temp_df_shift.loc[mask]
-    df.loc[mask0, :] = temp_df
-
-    df = df.drop("__zone__", axis=1)
-    return df
-
-
+def sort(df: pd.DataFrame, id_discrete: list[Any], id_continuous: [Any, Any]) -> pd.DataFrame:
+    return df.sort_values(by=[*id_discrete, *id_continuous])
