@@ -209,7 +209,8 @@ def create_continuity_modified(
         df: pd.DataFrame,
         id_discrete: Iterable[Any],
         id_continuous: [Any, Any],
-        limit=None, sort=False
+        limit=None,
+        sort=False
 ) -> pd.DataFrame:
     df_in = df.__deepcopy__()
     col_save = np.array(df_in.columns)
@@ -282,13 +283,13 @@ def mark_new_segment(df: pd.DataFrame, id_discrete: list[Any], id_continuous: [A
     return new_segm
 
 
-def cumul_segment_length(
+def compute_cumulated_length(
         df: pd.DataFrame,
         id_discrete: list[Any],
         id_continuous: [Any, Any]
 ) -> pd.Series:
     """
-    TODO : compute_cumulated_length
+    TODO : compute_cumulated_length.
     Computes cumulative sum of segment length for each unique combination of id_discrete.
 
     Parameters
@@ -479,7 +480,7 @@ def n_cut_finder(
         if "__new_seg__" not in df.columns:
             df["__new_seg__"] = mark_new_segment(df, id_discrete, id_continuous)
         if "__cumul__" not in df.columns:
-            df["__cumul__"] = cumul_segment_length(df, id_discrete, id_continuous).values
+            df["__cumul__"] = compute_cumulated_length(df, id_discrete, id_continuous).values
         df["__n_cut__"] = np.nan
         mask = df["__new_seg__"].shift(-1).fillna(True)
         df.loc[mask, "__n_cut__"] = (
@@ -534,7 +535,7 @@ def clusterize(
         raise ValueError("target_size should at least be 2 times larger than the maximum segment length.")
     else:
         df["__new_seg__"] = mark_new_segment(df, id_discrete, id_continuous)
-        df["__cumul__"] = cumul_segment_length(df, id_discrete, id_continuous).values
+        df["__cumul__"] = compute_cumulated_length(df, id_discrete, id_continuous).values
         df = df.sort_values([*id_discrete, id_continuous[1]]).reset_index(drop=True)
 
         # how many cuts should be done based on __cumul__ (created by cumul_segment_length())
@@ -592,3 +593,4 @@ def clusterize(
 
 def sort(df: pd.DataFrame, id_discrete: list[Any], id_continuous: [Any, Any]) -> pd.DataFrame:
     return df.sort_values(by=[*id_discrete, *id_continuous])
+

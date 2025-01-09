@@ -9,7 +9,7 @@ import pytest
 
 from crep import base
 from crep import (merge, aggregate_constant, unbalanced_merge, unbalanced_concat, homogenize_within,
-                  aggregate_duplicates)
+                  aggregate_duplicates, fill_segmentation)
 from crep import tools
 
 
@@ -304,6 +304,7 @@ def test_segmentation_regular(get_examples):
         length_minimal,
     )
     length = ret["t2"] - ret["t1"]
+    print(ret)
     assert np.abs(length.mean() - length_target).std() < 0.01
 
 
@@ -834,4 +835,31 @@ def test_unbalanced_concat_case12():
         'cont1': [30.0, 50.0, 50.0, 75.0, 75.0, 80.0, 80.0, 115.0, 115.0, 120.0],
         'cont2': [50.0, 75.0, 75.0, 80.0, 80.0, 115.0, 115.0, 120.0, 120.0, 150.0],
         'date': [2013.0, np.nan, 2013.0, np.nan, 2013.0, np.nan, 2013.0, np.nan, 2013.0, np.nan]
+    })), "\n" + str(df_test)
+
+
+def test_fill_segmentation():
+    df_segm = pd.DataFrame({"discr1": [1000]*2 + [2000]*2,
+                            "cont1": [0, 100, 0, 100],
+                            "cont2": [100, 200, 100, 200]})
+    df_feat = pd.DataFrame({"discr1": [1000]*4 + [2000]*4,
+                            "cont1": [0, 40, 110, 160, 0, 45, 95, 165],
+                            "cont2": [40, 110, 160, 200, 45, 95, 165, 200],
+                            "data1": [2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008],
+                            "data2": [1, 0, 1, 1, 0, 1, 0, 0],
+                            })
+    df_test = fill_segmentation(
+        df_segmentation=df_segm,
+        df_features=df_feat,
+        id_discrete=["discr1"],
+        id_continuous=["cont1", "cont2"],
+        dict_agg={"mean": ["data1"], "sum": ["data2"]}
+    )
+    print(df_test.to_dict(orient="list"))
+    assert str(df_test) == str(pd.DataFrame({
+        'discr1': [1000, 1000, 2000, 2000],
+        'cont1': [0, 100, 0, 100],
+        'cont2': [100, 200, 100, 200],
+        'mean_data1': [2001.6, 2003.3, 2005.6, 2007.35],
+        'sum_data2': [1.0, 2.0, 1.0, 0.0],
     })), "\n" + str(df_test)
