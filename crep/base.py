@@ -10,6 +10,7 @@ import numpy as np
 import pandas as pd
 
 from crep import tools
+from crep.tools import concretize_aggregation
 
 
 def merge(
@@ -738,8 +739,9 @@ def __fix_discrete_index(
 
     id_inter = [id_ for id_ in id_discrete_right if id_ in id_discrete_left]
     id_inter = list(id_inter)
-    df_id_right = pd.merge(df_id_left, df_id_right, on=id_inter)
-    data_right = pd.merge(df_id_right, data_right, on=id_discrete_right, how="left")
+    if len(id_inter) > 0:
+        df_id_right = pd.merge(df_id_left, df_id_right, on=id_inter)
+        data_right = pd.merge(df_id_right, data_right, on=id_discrete_right, how="left")
     return data_left, data_right
 
 
@@ -838,6 +840,7 @@ def aggregate_duplicates(
 ):
     """
     Removes duplicated rows by aggregating them.
+    TODO : assess
 
     Parameters
     ----------
@@ -1023,6 +1026,7 @@ def split_segment(
         id_discrete: list[Any],
         id_continuous: [Any, Any],
         target_size: int,
+        col_sum_agg: list[str] = None,
         verbose: bool = False
 ) -> pd.DataFrame:
     """
@@ -1038,6 +1042,12 @@ def split_segment(
         continuous columns that delimit the segments' start and end
     target_size: integer > 0
         targeted segment size
+    col_sum_agg: list[str], optional
+        Default to empty list. Some columns may have to be summed over several segments when creating super segments.
+        If so, splitting a row and assigning to each new row the same value as in the original non-split row may
+        result in inflated sums later on. To counter that, the columns that should later be summed are specified in
+        this list. The values are transformed into ratios relative to the segment size, then the row is split, and
+        then an inverse transformation is done to reassign a non-ratio value.
     verbose: optional. boolean
         whether to print shape of df and if df is admissible at the end of the function.
 
@@ -1046,6 +1056,8 @@ def split_segment(
     df: pandas dataframe
     """
     df = df.copy()
+    if col_sum_agg is None:
+        col_sum_agg = []
 
     df["__n_cut__"] = tools.n_cut_finder(
         df=df,
@@ -1058,6 +1070,9 @@ def split_segment(
 
     if "__diff__" not in df.columns:
         df["__diff__"] = df[id_continuous[1]] - df[id_continuous[0]]
+
+    for col in col_sum_agg:
+        df[col] = df[col] / df["__diff__"]
 
     new_rows = []
     while df["__n_cut_dyn__"].max() > 0:
@@ -1073,6 +1088,11 @@ def split_segment(
         new_rows.append(df_temp)
         df["__n_cut_dyn__"] -= 1
     df = pd.concat(new_rows, axis=0).sort_values(by=[*id_discrete, id_continuous[1]]).reset_index(drop=True)
+
+    df["__diff__"] = df[id_continuous[1]] - df[id_continuous[0]]
+    for col in col_sum_agg:
+        df[col] = df[col] * df["__diff__"]
+
     df = df.drop(["__diff__", "__n_cut__", "__n_cut_dyn__"], axis=1)
 
     if verbose:
@@ -1087,15 +1107,15 @@ def homogenize_within(
         df: pd.DataFrame,
         id_discrete: list[Any],
         id_continuous: [Any, Any],
+        target_size: float | int | None = None,
         method: Literal["agg", "split"] | list[Literal["agg", "split"]] | set[Literal["agg", "split"]] | None = None,
-        target_size: None | int = None,
         dict_agg: dict[str, list[Any]] | None = None,
         strict_size: bool = False,
         verbose: bool = False
 ) -> pd.DataFrame:
     """
     Uniformizes segment size by splitting them into shorter segments close to target size. The uniformization aims
-    to get a close a possible to target_size with +- 1.33 *  target_size as maximum error margin.
+    to get a close a possible to target_size with +- 1.33 * target_size as maximum error margin.
 
     Parameters
     ----------
@@ -1105,11 +1125,11 @@ def homogenize_within(
         discrete columns (object or categorical)
     id_continuous : list of 2 column names
         continuous columns that delimit the segments' start and end
+    target_size: optional, integer > 0 or None
+        targeted segment size. If None, the median is selected.
     method : optional str, either "agg" or "split"
         Whether to homogenize segment length by splitting long segments ("split") or by aggregating short segments ("agg") or both.
         Default to None lets the function define the method.
-    target_size: optional, integer > 0 or None
-        targeted segment size. Default to None lets the function define the target size.
     strict_size: whether to strictly respect target_size specified in argument, if any specified.
         The function can change the target size if the value is not congruent with the method
     dict_agg: optional. dict, keys: agg operator, values: list of columns or None,
@@ -1117,6 +1137,11 @@ def homogenize_within(
         id_continuous, id_discrete and add_group_by columns don't need to be specified in the dictionary
     verbose: optional. boolean
         whether to print shape of df and if df is admissible at the end of the function.
+
+    Raises
+    ------
+    Exception:
+        If method is not defined and if the function failed to select automatically a method.
 
     Returns
     -------
@@ -1145,41 +1170,41 @@ def homogenize_within(
                       "not specified and 'agg' method was not specified either.")
 
     if len(method) == 0:
-        if df["__diff__"].min() < 54 and agg_applicable:
+        if df["__diff__"].min() < target_size / 1.5 and agg_applicable:
             method.add("agg")
-        elif df["__diff__"].max() > 216:
+        elif df["__diff__"].max() > target_size * 1.33:
             method.add("split")
-        elif df["__diff__"].min() > 108:
-            method.add("split")
-        elif agg_applicable:
-            method.add("agg")
         else:
-            method.add("split")
+            warnings.warn("No method selected. Please, check whether the dataframe is admissible and "
+                          "whether the target size is coherent given the size of the segments in the dataframe.")
 
     if target_size is None:
-        if df["__diff__"].min() < 108 < df["__diff__"].max():
-            target_size = 108
-        else:
-            target_size = int(df["__diff__"].median())
+        target_size = int(df["__diff__"].median())
+        warnings.warn(f"Unspecified target size set at median: {target_size}")
 
     if "agg" not in method and target_size > min_thresh and not strict_size:
         initial_ts = f"{target_size}"
         target_size = max(int(df["__diff__"].min() * 1.33), 20)
         warnings.warn(f"Specified target_size for method {method} was not congruent with segment sizes in the"
-                      f" dataframe. "
-                      "target_size has been modified from " + initial_ts + f" to{target_size}.")
+                      " dataframe. target_size has been modified from " + initial_ts + f" to{target_size}.")
 
     if "__diff__" in df.columns:
         df = df.drop("__diff__", axis=1)
 
     # ==================
     # apply method(s)
+    col_sum_agg = []
+    if dict_agg is not None:
+        if "sum" in dict_agg.keys():
+            col_sum_agg = dict_agg["sum"]
+
     if "split" in method or ("agg" in method and target_size < min_thresh):
         df = split_segment(
             df=df,
             id_discrete=id_discrete,
             id_continuous=id_continuous,
             target_size=target_size // 3 if "agg" in method else target_size,
+            col_sum_agg=col_sum_agg,
             verbose=verbose
         )
 
@@ -1200,7 +1225,10 @@ def homogenize_between(
         df1: pd.DataFrame,
         df2: pd.DataFrame,
         id_discrete: list[Any],
-        id_continuous: [Any, Any],
+        id_continuous: list[Any],
+        dict_agg_df1: dict[str, list[str]] | None = None,
+        dict_agg_df2: dict[str, list[str]] | None = None,
+        keep_df1: bool = False,
         verbose: bool = False
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
@@ -1230,6 +1258,12 @@ def homogenize_between(
         discrete columns (object or categorical)
     id_continuous : list of 2 column names
         continuous columns that delimit the segments' start and end
+    dict_agg_df1: optional, dict[str, list[str]] | None
+        dictionary with settings about how to handle the columns in df1 that are neither id_discrete nor id_continuous
+    dict_agg_df2: optional, dict[str, list[str]] | None
+        dictionary with settings about how to handle the columns in df2 that are neither id_discrete nor id_continuous
+    keep_df1: optional, bool
+        default to False. If True, the segmentation in df1 does not change. Only df2 adapts to df1.
     verbose: optional. boolean
         whether to print shape of df and if df is admissible at the end of the function.
 
@@ -1250,56 +1284,28 @@ def homogenize_between(
         target_size = int(1.33 * min_diff)
     else:
         target_size = int(1.33 * min_diff_ref)
+    print(f"homogenize_between: chosen target size: {target_size}")
 
     df2 = homogenize_within(
         df=df2.drop("__diff__", axis=1),
         id_discrete=id_discrete,
         id_continuous=id_continuous,
         target_size=target_size,
+        dict_agg=dict_agg_df2,
         verbose=verbose
     )
 
-    df1 = homogenize_within(
-        df=df1.drop("__diff__", axis=1),
-        id_discrete=id_discrete,
-        id_continuous=id_continuous,
-        target_size=target_size,
-        verbose=verbose
-    )
+    if not keep_df1:
+        df1 = homogenize_within(
+            df=df1.drop("__diff__", axis=1),
+            id_discrete=id_discrete,
+            id_continuous=id_continuous,
+            target_size=target_size,
+            dict_agg=dict_agg_df1,
+            verbose=verbose
+        )
 
     return df1, df2
-
-
-def aggregate(
-        df: pd.DataFrame,
-        df_target_segmentation: pd.DataFrame,
-        id_discrete: list[Any],
-        id_continuous: [Any, Any],
-        method="weighted_mean"
-
-) -> pd.DataFrame:
-    df_target_segmentation = df_target_segmentation.__deepcopy__()
-    df_target_segmentation["index"] = range(len(df_target_segmentation))
-    ret = merge(df, df_target_segmentation, id_continuous=id_continuous, id_discrete=id_discrete,
-                how="outer")
-    ret = ret.infer_objects()
-    ret["__length__"] = ret[id_continuous[1]] - ret[id_continuous[0]]
-    df_ret = df_target_segmentation[["index"]].set_index("index")
-
-    column_number = df.drop(columns=[*id_discrete, *id_continuous]).select_dtypes(include='number').columns
-
-    for col in column_number:
-        ret[col] = ret[col] * ret["__length__"]
-        length = ret.dropna(subset=[col]).groupby("index")["__length__"].sum()
-        df_ret[col] = ret.groupby("index")[col].sum() / length
-
-    column_data = list(column_number)
-    df_data = df_ret[column_data]
-    df_data = pd.merge(df_data.reset_index(), df_target_segmentation, on="index")
-    df_data = df_data.drop(columns="index")
-    df_data = df_data[df.columns]
-    df_data = df_data.astype(df.dtypes)
-    return df_data
 
 
 def segmentation_irregular(
@@ -1309,7 +1315,48 @@ def segmentation_irregular(
         length_target,
         length_minimal,
 ) -> pd.DataFrame:
-    return df
+    """
+    Parameters
+    ----------
+    df: pd.DataFrame
+    id_discrete: list[str]
+        list of name of columns of categorical type
+    id_continuous: list[str, str]
+        list of name of 2 columns of numerical type, indicating the start and the end of the segment
+    length_target
+        length to obtain at the end of the segmentation
+    length_minimal
+        When there are gaps in the dataframe, define the length beyond which this could be considered as a
+        deliberate break in the segmentation and not as missing data. Under this threshold, a new row will
+        be created to ensure the continuity between successive segments in the dataframe.
+
+    Returns
+    -------
+    pd.DataFrame
+        New dataframe containing only the columns id_discrete and id_continuous, with the length of the segments
+        adjusted to be as close as possible to length_target.
+    """
+
+    df_new = tools.create_continuity_modified(
+        df=df,
+        id_discrete=id_discrete,
+        id_continuous=id_continuous,
+        limit=length_minimal,
+        sort=False
+    )
+
+    df_new = homogenize_within(
+        df=df_new[[*id_discrete, *id_continuous]],
+        id_discrete=id_discrete,
+        id_continuous=id_continuous,
+        method=["agg", "split"],
+        target_size=length_target,
+        dict_agg=None,
+        strict_size=False,
+        verbose=False
+    )
+
+    return df_new
 
 
 def segmentation_regular(
@@ -1358,3 +1405,92 @@ def segmentation_regular(
     df_new.index = range(len(df_new))
 
     return df_new
+
+
+def aggregate_on_segmentation(
+        df_segmentation: pd.DataFrame,
+        df_data: pd.DataFrame,
+        id_discrete: list[str],
+        id_continuous: list[str],
+        dict_agg: dict[str, list[str]] | None = None
+):
+    """
+    adds data to segmentation
+
+    Parameters
+    ----------
+    df_segmentation: pd.DataFrame
+        the dataframe containing the segmentation. Should contain only columns id_discrete and id_continuous
+    df_data: pd.DataFrame
+        the dataframe containing the features to fit to the segmentation. Should contain the columns
+        id_discrete and id_continuous as well as other columns for the features of interest.
+    id_discrete
+    id_continuous
+    dict_agg:
+
+    Returns
+    -------
+    pd.DataFrame:
+        a dataframe with the feature data fitted to the new segmentation.
+    """
+    # verification of requirements
+    for col in id_continuous + id_discrete:
+        if col not in df_segmentation.columns or col not in df_data.columns:
+            raise Exception(f"Error: {col} is not present in both dataframes df_segm and df_feat.")
+
+    is_df_segm_admissible = tools.admissible_dataframe(
+        data=df_segmentation, id_discrete=id_discrete, id_continuous=id_continuous
+    )
+    is_df_feat_admissible = tools.admissible_dataframe(
+        data=df_data, id_discrete=id_discrete, id_continuous=id_continuous
+    )
+    if not is_df_segm_admissible or not is_df_feat_admissible:
+        raise Exception("Error: Both dataframes should be admissible:"
+                        f"Is df_segm admissible? {is_df_segm_admissible}"
+                        f"Is df_feat admissible? {is_df_feat_admissible}")
+
+    # homogenize_between() reduces the difference in segment size between df_feat and df_segm. More precisely, it
+    # adjusts df_feat to df_segm. This may reduce the risk of error when using merge().
+    df_segmentation, df_features = homogenize_between(
+        df1=df_segmentation,
+        df2=df_data,
+        id_discrete=id_discrete,
+        id_continuous=id_continuous,
+        dict_agg_df1=None,
+        dict_agg_df2=dict_agg,
+        keep_df1=True,
+        verbose=False
+    )
+
+    df_segmentation["__id__"] = 1
+    df_segmentation["__id__"] = df_segmentation["__id__"].cumsum()
+
+    # merging the segmentations in both df
+    df_merge = merge(
+        data_left=df_segmentation,
+        data_right=df_features,
+        id_continuous=id_continuous,
+        id_discrete=id_discrete,
+        how="left",
+        remove_duplicates=False,
+        verbose=False
+    )
+
+    # groupby based on the settings in dict_agg and based on grouping variable __id__
+    df_merge = concretize_aggregation(
+        df=df_merge,
+        id_discrete=id_discrete,
+        id_continuous=id_continuous,
+        dict_agg=dict_agg,
+        add_group_by="__id__",
+        verbose=False
+    )
+
+    df_merge = df_merge.drop(columns=["__id__"])
+
+    df_merge = tools.reorder_columns(df_merge, id_discrete, id_continuous)
+
+    return df_merge
+
+
+
