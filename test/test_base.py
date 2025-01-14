@@ -8,9 +8,9 @@ import pandas as pd
 import pytest
 
 from crep import base
-from crep import (merge, aggregate_constant, unbalanced_merge, unbalanced_concat, homogenize_within,
-                  aggregate_duplicates, fill_segmentation)
+from crep import (merge, aggregate_constant, aggregate_duplicates, aggregate_on_segmentation)
 from crep import tools
+from crep.base import unbalanced_merge, unbalanced_concat, homogenize_within
 
 
 def test_merge_basic(get_examples):
@@ -52,6 +52,34 @@ def test_merge_basic(get_examples):
     assert ret_i.equals(ret_i_th)
     assert ret_r.equals(ret_th_r)
 
+def test_merge_basic_empty_id_discrete(get_examples):
+    df_left, df_right = get_examples
+    df_left = df_left.loc[df_left["id"] == 1].drop(columns="id")
+    df_right = df_right.loc[df_right["id"] == 1].drop(columns="id")
+    ret = merge(df_left, df_right,
+                id_continuous=["t1", "t2"],
+                how="outer", id_discrete=[])
+    ret_l = merge(df_left, df_right,
+                  id_continuous=["t1", "t2"],
+                  how="left", id_discrete=[])
+
+    ret_th = pd.DataFrame(
+        {'t1': {0: 0, 1: 5, 2: 10, 3: 80},
+         't2': {0: 5, 1: 10, 2: 80, 3: 100},
+         'data1': {0: 0.4, 1: 0.4, 2: 0.3, 3: 0.3},
+         'data2': {0: np.nan, 1: 0.25, 2: 0.25, 3: np.nan}
+    })
+    ret_th = ret_th.astype(ret.dtypes)
+    ret_i_th = ret_th.dropna()
+    ret_th_l = ret_th.dropna(subset=["data1"])
+    ret_th_r = ret_th.dropna(subset=["data2"])
+
+    ret_i_th.index = range(ret_i_th.__len__())
+    ret_th_l.index = range(ret_th_l.__len__())
+    ret_th_r.index = range(ret_th_r.__len__())
+
+    assert ret.equals(ret_th)
+    assert ret_l.equals(ret_th_l)
 
 def test__merge(get_advanced_examples):
     df_left, df_right = get_advanced_examples
@@ -306,25 +334,6 @@ def test_segmentation_regular(get_examples):
     length = ret["t2"] - ret["t1"]
     print(ret)
     assert np.abs(length.mean() - length_target).std() < 0.01
-
-
-def test_aggregate(get_examples):
-    df_left, df_right = get_examples
-    id_continuous = ["t1", "t2"]
-    df = df_right
-    length_target = 7
-    length_minimal = 30
-    id_discrete = ["id"]
-    df_target_segmentation = base.segmentation_regular(
-        df,
-        id_discrete,
-        id_continuous,
-        length_target,
-        length_minimal,
-    )
-    ret = base.aggregate(df, df_target_segmentation,
-                         id_discrete=id_discrete,
-                         id_continuous=id_continuous)
 
 
 def test_homogenize_within_case1():
@@ -848,9 +857,9 @@ def test_fill_segmentation():
                             "data1": [2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008],
                             "data2": [1, 0, 1, 1, 0, 1, 0, 0],
                             })
-    df_test = fill_segmentation(
+    df_test = aggregate_on_segmentation(
         df_segmentation=df_segm,
-        df_features=df_feat,
+        df_data=df_feat,
         id_discrete=["discr1"],
         id_continuous=["cont1", "cont2"],
         dict_agg={"mean": ["data1"], "sum": ["data2"]}

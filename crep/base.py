@@ -739,8 +739,9 @@ def __fix_discrete_index(
 
     id_inter = [id_ for id_ in id_discrete_right if id_ in id_discrete_left]
     id_inter = list(id_inter)
-    df_id_right = pd.merge(df_id_left, df_id_right, on=id_inter)
-    data_right = pd.merge(df_id_right, data_right, on=id_discrete_right, how="left")
+    if len(id_inter) > 0:
+        df_id_right = pd.merge(df_id_left, df_id_right, on=id_inter)
+        data_right = pd.merge(df_id_right, data_right, on=id_discrete_right, how="left")
     return data_left, data_right
 
 
@@ -839,6 +840,7 @@ def aggregate_duplicates(
 ):
     """
     Removes duplicated rows by aggregating them.
+    TODO : assess
 
     Parameters
     ----------
@@ -1024,7 +1026,7 @@ def split_segment(
         id_discrete: list[Any],
         id_continuous: [Any, Any],
         target_size: int,
-        col_sum_agg: list[str] = [],
+        col_sum_agg: list[str] = None,
         verbose: bool = False
 ) -> pd.DataFrame:
     """
@@ -1046,8 +1048,6 @@ def split_segment(
         result in inflated sums later on. To counter that, the columns that should later be summed are specified in
         this list. The values are transformed into ratios relative to the segment size, then the row is split, and
         then an inverse transformation is done to reassign a non-ratio value.
-    hist : optional. boolean
-        if True, display a histogram of the segment size post aggregation
     verbose: optional. boolean
         whether to print shape of df and if df is admissible at the end of the function.
 
@@ -1056,6 +1056,8 @@ def split_segment(
     df: pandas dataframe
     """
     df = df.copy()
+    if col_sum_agg is None:
+        col_sum_agg = []
 
     df["__n_cut__"] = tools.n_cut_finder(
         df=df,
@@ -1306,38 +1308,6 @@ def homogenize_between(
     return df1, df2
 
 
-def aggregate(
-        df: pd.DataFrame,
-        df_target_segmentation: pd.DataFrame,
-        id_discrete: list[Any],
-        id_continuous: [Any, Any],
-        method="weighted_mean"
-
-) -> pd.DataFrame:
-    df_target_segmentation = df_target_segmentation.__deepcopy__()
-    df_target_segmentation["index"] = range(len(df_target_segmentation))
-    ret = merge(df, df_target_segmentation, id_continuous=id_continuous, id_discrete=id_discrete,
-                how="outer")
-    ret = ret.infer_objects()
-    ret["__length__"] = ret[id_continuous[1]] - ret[id_continuous[0]]
-    df_ret = df_target_segmentation[["index"]].set_index("index")
-
-    column_number = df.drop(columns=[*id_discrete, *id_continuous]).select_dtypes(include='number').columns
-
-    for col in column_number:
-        ret[col] = ret[col] * ret["__length__"]
-        length = ret.dropna(subset=[col]).groupby("index")["__length__"].sum()
-        df_ret[col] = ret.groupby("index")[col].sum() / length
-
-    column_data = list(column_number)
-    df_data = df_ret[column_data]
-    df_data = pd.merge(df_data.reset_index(), df_target_segmentation, on="index")
-    df_data = df_data.drop(columns="index")
-    df_data = df_data[df.columns]
-    df_data = df_data.astype(df.dtypes)
-    return df_data
-
-
 def segmentation_irregular(
         df: pd.DataFrame,
         id_discrete: list[Any],
@@ -1437,9 +1407,9 @@ def segmentation_regular(
     return df_new
 
 
-def fill_segmentation(
+def aggregate_on_segmentation(
         df_segmentation: pd.DataFrame,
-        df_features: pd.DataFrame,
+        df_data: pd.DataFrame,
         id_discrete: list[str],
         id_continuous: list[str],
         dict_agg: dict[str, list[str]] | None = None
@@ -1451,7 +1421,7 @@ def fill_segmentation(
     ----------
     df_segmentation: pd.DataFrame
         the dataframe containing the segmentation. Should contain only columns id_discrete and id_continuous
-    df_features: pd.DataFrame
+    df_data: pd.DataFrame
         the dataframe containing the features to fit to the segmentation. Should contain the columns
         id_discrete and id_continuous as well as other columns for the features of interest.
     id_discrete
@@ -1465,14 +1435,14 @@ def fill_segmentation(
     """
     # verification of requirements
     for col in id_continuous + id_discrete:
-        if col not in df_segmentation.columns or col not in df_features.columns:
+        if col not in df_segmentation.columns or col not in df_data.columns:
             raise Exception(f"Error: {col} is not present in both dataframes df_segm and df_feat.")
 
     is_df_segm_admissible = tools.admissible_dataframe(
         data=df_segmentation, id_discrete=id_discrete, id_continuous=id_continuous
     )
     is_df_feat_admissible = tools.admissible_dataframe(
-        data=df_features, id_discrete=id_discrete, id_continuous=id_continuous
+        data=df_data, id_discrete=id_discrete, id_continuous=id_continuous
     )
     if not is_df_segm_admissible or not is_df_feat_admissible:
         raise Exception("Error: Both dataframes should be admissible:"
@@ -1483,7 +1453,7 @@ def fill_segmentation(
     # adjusts df_feat to df_segm. This may reduce the risk of error when using merge().
     df_segmentation, df_features = homogenize_between(
         df1=df_segmentation,
-        df2=df_features,
+        df2=df_data,
         id_discrete=id_discrete,
         id_continuous=id_continuous,
         dict_agg_df1=None,
