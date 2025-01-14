@@ -28,9 +28,9 @@ Functions
    crep.base.split_segment
    crep.base.homogenize_within
    crep.base.homogenize_between
-   crep.base.aggregate
    crep.base.segmentation_irregular
    crep.base.segmentation_regular
+   crep.base.aggregate_on_segmentation
 
 
 Module Contents
@@ -340,6 +340,7 @@ Module Contents
 
    
    Removes duplicated rows by aggregating them.
+   TODO : assess
 
 
    :Parameters:
@@ -435,7 +436,7 @@ Module Contents
    ..
        !! processed by numpydoc !!
 
-.. py:function:: split_segment(df: pandas.DataFrame, id_discrete: list[Any], id_continuous: [Any, Any], target_size: int, verbose: bool = False) -> pandas.DataFrame
+.. py:function:: split_segment(df: pandas.DataFrame, id_discrete: list[Any], id_continuous: [Any, Any], target_size: int, col_sum_agg: list[str] = None, verbose: bool = False) -> pandas.DataFrame
 
    
    Uniformizes segment size by splitting them into shorter segments close to target size.
@@ -454,6 +455,13 @@ Module Contents
 
        **target_size: integer > 0**
            targeted segment size
+
+       **col_sum_agg: list[str], optional**
+           Default to empty list. Some columns may have to be summed over several segments when creating super segments.
+           If so, splitting a row and assigning to each new row the same value as in the original non-split row may
+           result in inflated sums later on. To counter that, the columns that should later be summed are specified in
+           this list. The values are transformed into ratios relative to the segment size, then the row is split, and
+           then an inverse transformation is done to reassign a non-ratio value.
 
        **verbose: optional. boolean**
            whether to print shape of df and if df is admissible at the end of the function.
@@ -478,11 +486,11 @@ Module Contents
    ..
        !! processed by numpydoc !!
 
-.. py:function:: homogenize_within(df: pandas.DataFrame, id_discrete: list[Any], id_continuous: [Any, Any], method: Literal['agg', 'split'] | list[Literal['agg', 'split']] | set[Literal['agg', 'split']] | None = None, target_size: None | int = None, dict_agg: dict[str, list[Any]] | None = None, strict_size: bool = False, verbose: bool = False) -> pandas.DataFrame
+.. py:function:: homogenize_within(df: pandas.DataFrame, id_discrete: list[Any], id_continuous: [Any, Any], target_size: float | int | None = None, method: Literal['agg', 'split'] | list[Literal['agg', 'split']] | set[Literal['agg', 'split']] | None = None, dict_agg: dict[str, list[Any]] | None = None, strict_size: bool = False, verbose: bool = False) -> pandas.DataFrame
 
    
    Uniformizes segment size by splitting them into shorter segments close to target size. The uniformization aims
-   to get a close a possible to target_size with +- 1.33 *  target_size as maximum error margin.
+   to get a close a possible to target_size with +- 1.33 * target_size as maximum error margin.
 
 
    :Parameters:
@@ -496,12 +504,12 @@ Module Contents
        **id_continuous** : list of 2 column names
            continuous columns that delimit the segments' start and end
 
+       **target_size: optional, integer > 0 or None**
+           targeted segment size. If None, the median is selected.
+
        **method** : optional str, either "agg" or "split"
            Whether to homogenize segment length by splitting long segments ("split") or by aggregating short segments ("agg") or both.
            Default to None lets the function define the method.
-
-       **target_size: optional, integer > 0 or None**
-           targeted segment size. Default to None lets the function define the target size.
 
        **strict_size: whether to strictly respect target_size specified in argument, if any specified.**
            The function can change the target size if the value is not congruent with the method
@@ -523,6 +531,10 @@ Module Contents
 
 
 
+   :Raises:
+
+       Exception:
+           If method is not defined and if the function failed to select automatically a method.
 
 
 
@@ -533,7 +545,7 @@ Module Contents
    ..
        !! processed by numpydoc !!
 
-.. py:function:: homogenize_between(df1: pandas.DataFrame, df2: pandas.DataFrame, id_discrete: list[Any], id_continuous: [Any, Any], verbose: bool = False) -> tuple[pandas.DataFrame, pandas.DataFrame]
+.. py:function:: homogenize_between(df1: pandas.DataFrame, df2: pandas.DataFrame, id_discrete: list[Any], id_continuous: list[Any], dict_agg_df1: dict[str, list[str]] | None = None, dict_agg_df2: dict[str, list[str]] | None = None, keep_df1: bool = False, verbose: bool = False) -> tuple[pandas.DataFrame, pandas.DataFrame]
 
    
    If the ratio of max segment size in one dataframe and min segment size in the other dataframe > 2, it may create
@@ -568,6 +580,15 @@ Module Contents
        **id_continuous** : list of 2 column names
            continuous columns that delimit the segments' start and end
 
+       **dict_agg_df1: optional, dict[str, list[str]] | None**
+           dictionary with settings about how to handle the columns in df1 that are neither id_discrete nor id_continuous
+
+       **dict_agg_df2: optional, dict[str, list[str]] | None**
+           dictionary with settings about how to handle the columns in df2 that are neither id_discrete nor id_continuous
+
+       **keep_df1: optional, bool**
+           default to False. If True, the segmentation in df1 does not change. Only df2 adapts to df1.
+
        **verbose: optional. boolean**
            whether to print shape of df and if df is admissible at the end of the function.
 
@@ -591,9 +612,95 @@ Module Contents
    ..
        !! processed by numpydoc !!
 
-.. py:function:: aggregate(df: pandas.DataFrame, df_target_segmentation: pandas.DataFrame, id_discrete: list[Any], id_continuous: [Any, Any], method='weighted_mean') -> pandas.DataFrame
-
 .. py:function:: segmentation_irregular(df: pandas.DataFrame, id_discrete: list[Any], id_continuous: [Any, Any], length_target, length_minimal) -> pandas.DataFrame
 
+   
+
+
+
+   :Parameters:
+
+       **df: pd.DataFrame**
+           ..
+
+       **id_discrete: list[str]**
+           list of name of columns of categorical type
+
+       **id_continuous: list[str, str]**
+           list of name of 2 columns of numerical type, indicating the start and the end of the segment
+
+       **length_target**
+           length to obtain at the end of the segmentation
+
+       **length_minimal**
+           When there are gaps in the dataframe, define the length beyond which this could be considered as a
+           deliberate break in the segmentation and not as missing data. Under this threshold, a new row will
+           be created to ensure the continuity between successive segments in the dataframe.
+
+
+
+   :Returns:
+
+       pd.DataFrame
+           New dataframe containing only the columns id_discrete and id_continuous, with the length of the segments
+           adjusted to be as close as possible to length_target.
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
 .. py:function:: segmentation_regular(df: pandas.DataFrame, id_discrete: list[Any], id_continuous: [Any, Any], length_target, length_gap_filling) -> pandas.DataFrame
+
+.. py:function:: aggregate_on_segmentation(df_segmentation: pandas.DataFrame, df_data: pandas.DataFrame, id_discrete: list[str], id_continuous: list[str], dict_agg: dict[str, list[str]] | None = None)
+
+   
+   adds data to segmentation
+
+
+   :Parameters:
+
+       **df_segmentation: pd.DataFrame**
+           the dataframe containing the segmentation. Should contain only columns id_discrete and id_continuous
+
+       **df_data: pd.DataFrame**
+           the dataframe containing the features to fit to the segmentation. Should contain the columns
+           id_discrete and id_continuous as well as other columns for the features of interest.
+
+       **id_discrete**
+           ..
+
+       **id_continuous**
+           ..
+
+       **dict_agg:**
+           ..
+
+
+
+   :Returns:
+
+       pd.DataFrame:
+           a dataframe with the feature data fitted to the new segmentation.
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
 

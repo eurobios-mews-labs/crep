@@ -21,11 +21,9 @@ Functions
 
    crep.merge
    crep.aggregate_constant
-   crep.unbalanced_merge
-   crep.unbalanced_concat
-   crep.homogenize_within
    crep.aggregate_duplicates
    crep.merge_event
+   crep.aggregate_on_segmentation
    crep.compute_discontinuity
 
 
@@ -119,159 +117,11 @@ Package Contents
    ..
        !! processed by numpydoc !!
 
-.. py:function:: unbalanced_merge(data_admissible: pandas.DataFrame, data_not_admissible: pandas.DataFrame, id_discrete: iter, id_continuous: [Any, Any]) -> pandas.DataFrame
-
-   
-   Merge admissible and non-admissible dataframes based on discrete and continuous identifiers.
-
-
-   :Parameters:
-
-       **data_admissible** : pd.DataFrame
-           DataFrame containing admissible data.
-
-       **data_not_admissible** : pd.DataFrame
-           DataFrame containing non-admissible data.
-
-       **id_discrete** : list
-           List of column names representing discrete identifiers.
-
-       **id_continuous** : list
-           List of column names representing continuous identifiers.
-
-
-
-   :Returns:
-
-       pd.DataFrame
-           A DataFrame resulting from the unbalanced merge of admissible and non-admissible data.
-
-
-
-
-
-
-
-
-   .. rubric:: Notes
-
-   The function performs the following steps:
-   1. Combines and sorts the admissible and non-admissible data based on the identifiers.
-   2. Resolves overlaps and conflicts between the admissible and non-admissible data.
-   3. Merges and returns the final DataFrame.
-
-
-
-   ..
-       !! processed by numpydoc !!
-
-.. py:function:: unbalanced_concat(df1: pandas.DataFrame, df2: pandas.DataFrame, id_discrete: list[Any], id_continuous: [Any, Any], ignore_homogenize: bool = False, verbose: bool = False) -> pandas.DataFrame
-
-   
-   Concatenates the rows from two dataframes, and adjusts the lengths of the segments so that for each segment in the
-   first dataframe there is a segment in the second dataframes with the same id_continuous characteristics, and
-   vice versa. This function can handle duplicated rows in each other of the df, but not non-duplicated overlap.
-
-
-   :Parameters:
-
-       **df1** : pandas dataframe
-           ..
-
-       **df2** : pandas dataframe
-           ..
-
-       **id_discrete** : list
-           discrete columns (object or categorical)
-
-       **id_continuous** : list of 2 column names
-           continuous columns that delimit the segments' start and end
-
-       **ignore_homogenize** : optional. boolean
-           if True, ignore the homogenization function
-
-       **verbose: optional. boolean**
-           whether to print shape of df and if df is admissible at the end of the function.
-
-
-
-   :Returns:
-
-       df:  pandas dataframe
-           ..
-
-
-
-
-
-
-
-
-
-
-
-   ..
-       !! processed by numpydoc !!
-
-.. py:function:: homogenize_within(df: pandas.DataFrame, id_discrete: list[Any], id_continuous: [Any, Any], method: Literal['agg', 'split'] | list[Literal['agg', 'split']] | set[Literal['agg', 'split']] | None = None, target_size: None | int = None, dict_agg: dict[str, list[Any]] | None = None, strict_size: bool = False, verbose: bool = False) -> pandas.DataFrame
-
-   
-   Uniformizes segment size by splitting them into shorter segments close to target size. The uniformization aims
-   to get a close a possible to target_size with +- 1.33 *  target_size as maximum error margin.
-
-
-   :Parameters:
-
-       **df** : pandas dataframe
-           without duplicated rows or overlapping rows
-
-       **id_discrete** : list
-           discrete columns (object or categorical)
-
-       **id_continuous** : list of 2 column names
-           continuous columns that delimit the segments' start and end
-
-       **method** : optional str, either "agg" or "split"
-           Whether to homogenize segment length by splitting long segments ("split") or by aggregating short segments ("agg") or both.
-           Default to None lets the function define the method.
-
-       **target_size: optional, integer > 0 or None**
-           targeted segment size. Default to None lets the function define the target size.
-
-       **strict_size: whether to strictly respect target_size specified in argument, if any specified.**
-           The function can change the target size if the value is not congruent with the method
-
-       **dict_agg: optional. dict, keys: agg operator, values: list of columns or None,**
-           specify which aggregation operator to apply for which column. If None, default is mean for all columns.
-           id_continuous, id_discrete and add_group_by columns don't need to be specified in the dictionary
-
-       **verbose: optional. boolean**
-           whether to print shape of df and if df is admissible at the end of the function.
-
-
-
-   :Returns:
-
-       df: pandas dataframe
-           ..
-
-
-
-
-
-
-
-
-
-
-
-   ..
-       !! processed by numpydoc !!
-
 .. py:function:: aggregate_duplicates(df: pandas.DataFrame, id_discrete: list[Any], id_continuous: [Any, Any], dict_agg: dict[str, list[Any]] | None = None, verbose: bool = False)
 
    
    Removes duplicated rows by aggregating them.
+   TODO : assess
 
 
    :Parameters:
@@ -352,6 +202,50 @@ Package Contents
 
        pd.DataFrame
            A merged dataframe that combines `data_left` and `data_right`.
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: aggregate_on_segmentation(df_segmentation: pandas.DataFrame, df_data: pandas.DataFrame, id_discrete: list[str], id_continuous: list[str], dict_agg: dict[str, list[str]] | None = None)
+
+   
+   adds data to segmentation
+
+
+   :Parameters:
+
+       **df_segmentation: pd.DataFrame**
+           the dataframe containing the segmentation. Should contain only columns id_discrete and id_continuous
+
+       **df_data: pd.DataFrame**
+           the dataframe containing the features to fit to the segmentation. Should contain the columns
+           id_discrete and id_continuous as well as other columns for the features of interest.
+
+       **id_discrete**
+           ..
+
+       **id_continuous**
+           ..
+
+       **dict_agg:**
+           ..
+
+
+
+   :Returns:
+
+       pd.DataFrame:
+           a dataframe with the feature data fitted to the new segmentation.
 
 
 

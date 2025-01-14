@@ -21,7 +21,7 @@ Functions
    crep.tools.reorder_columns
    crep.tools.name_simplifier
    crep.tools.mark_new_segment
-   crep.tools.cumul_segment_length
+   crep.tools.compute_cumulated_length
    crep.tools.concretize_aggregation
    crep.tools.n_cut_finder
    crep.tools.clusterize
@@ -195,10 +195,10 @@ Module Contents
    ..
        !! processed by numpydoc !!
 
-.. py:function:: cumul_segment_length(df: pandas.DataFrame, id_discrete: list[Any], id_continuous: [Any, Any]) -> pandas.Series
+.. py:function:: compute_cumulated_length(df: pandas.DataFrame, id_discrete: list[Any], id_continuous: [Any, Any]) -> pandas.Series
 
    
-   TODO : compute_cumulated_length
+   TODO : compute_cumulated_length.
    Computes cumulative sum of segment length for each unique combination of id_discrete.
 
 
