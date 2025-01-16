@@ -191,34 +191,6 @@ def create_continuity(
     if df_in["discontinuity"].sum() == 0:
         return df
     else:
-        ix__ = np.where(df_in["discontinuity"].values)[0]
-        df_add = pd.DataFrame(columns=df_in.columns, index=range(len(ix__)))
-        df_add[index] = df_in.iloc[ix__][index].values
-        df_add[id_continuous[0]] = df_in.iloc[ix__ - 1].loc[:, id_continuous[1]].values
-        df_add[id_continuous[1]] = df_in.iloc[ix__].loc[:, id_continuous[0]].values
-        if limit is not None:
-            df_add = df_add[(df_add[id_continuous[1]] - df_add[id_continuous[0]]) < limit]
-        df_in = pd.concat((df_in, df_add.dropna(axis=1, how='all')), axis=0)
-        df_in = df_in[df_in[id_continuous[0]] < df_in[id_continuous[1]]]
-    if sort:
-        df_in = df_in.sort_values([*id_discrete, *id_continuous])
-    return df_in.loc[:, col_save]
-
-
-def create_continuity_modified(
-        df: pd.DataFrame,
-        id_discrete: Iterable[Any],
-        id_continuous: [Any, Any],
-        limit=None,
-        sort=False
-) -> pd.DataFrame:
-    df_in = df.__deepcopy__()
-    col_save = np.array(df_in.columns)
-    index = [*id_discrete, *id_continuous]
-    df_in["discontinuity"] = compute_discontinuity(df_in, id_discrete, id_continuous)
-    if df_in["discontinuity"].sum() == 0:
-        return df
-    else:
         mask = (df[id_discrete].eq(df[id_discrete].shift())).sum(axis=1) < len(list(id_discrete))
         ix__ = np.where(df_in["discontinuity"].values & ~mask)[0]
         df_add = pd.DataFrame(columns=df_in.columns, index=range(len(ix__)))
@@ -590,7 +562,8 @@ def clusterize(
             axis=1)
         return df["__lim__"]
 
-
 def sort(df: pd.DataFrame, id_discrete: list[Any], id_continuous: [Any, Any]) -> pd.DataFrame:
     return df.sort_values(by=[*id_discrete, *id_continuous])
+
+
 
