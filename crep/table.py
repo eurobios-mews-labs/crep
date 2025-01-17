@@ -1,7 +1,6 @@
 # from encodings.punycode import selective_find
 
 import pandas as pd
-from typing_extensions import Self
 from typing import Any, Literal
 import warnings
 
@@ -66,7 +65,7 @@ class DataFrameContinuous(pd.DataFrame):
                                        continuous_index=self._continuous_index)
         return result
 
-    def concat(self, other_dfs: pd.DataFrame | list[pd.DataFrame], **kwargs) -> Self:
+    def concat(self, other_dfs: pd.DataFrame | list[pd.DataFrame], **kwargs) -> 'DataFrameContinuous':
         """
         concat is an external function (not in the pd.DataFrame class, but called with pd.concat()
         This function builds the concat method such as to be able to call it as such: df.concat()
@@ -104,7 +103,7 @@ class DataFrameContinuous(pd.DataFrame):
         df = df.reorder_columns()
         return self._return(df)
 
-    def filter_by_discrete_variables(self, dict_range: dict[str, tuple[Any | None, Any | None]]) -> Self:
+    def filter_by_discrete_variables(self, dict_range: dict[str, tuple[Any | None, Any | None]]) -> 'DataFrameContinuous':
         """
         Filters a dataset by keeping only the specified values
 
@@ -120,7 +119,7 @@ class DataFrameContinuous(pd.DataFrame):
             df = df.loc[mask, :].reset_index(drop=True)
         return self._return(df)
 
-    def filter_by_continuous_variables(self, dict_range: dict[str, tuple[Any | None, Any | None]]) -> Self:
+    def filter_by_continuous_variables(self, dict_range: dict[str, tuple[Any | None, Any | None]]) -> 'DataFrameContinuous':
         """
         Filter a dataset by keeping the values above, between or below continuous values
 
@@ -172,7 +171,7 @@ class DataFrameContinuous(pd.DataFrame):
         df = df.auto_sort()
         return df
 
-    def create_continuity(self, limit=None, sort=False) -> pd.DataFrame:
+    def create_continuity(self, limit=None, sort=False) -> 'DataFrameContinuous':
         df = tools.create_continuity(
                 df=self,
                 id_discrete=self._discrete_index,
@@ -182,7 +181,13 @@ class DataFrameContinuous(pd.DataFrame):
         )
         return self._return(df)
 
-    def crep_merge(self, data_right: pd.DataFrame, how: str, remove_duplicates: bool = False, verbose: bool = False):
+    def crep_merge(
+            self,
+            data_right: pd.DataFrame,
+            how: str,
+            remove_duplicates: bool = False,
+            verbose: bool = False
+    ) -> 'DataFrameContinuous':
         df = base.merge(
             data_left=self,
             data_right=data_right,
@@ -194,7 +199,7 @@ class DataFrameContinuous(pd.DataFrame):
         )
         return self._return(df)
 
-    def merge_event(self, data_right: pd.DataFrame, id_event):
+    def merge_event(self, data_right: pd.DataFrame, id_event) -> 'DataFrameContinuous':
         df = base.merge_event(
             data_left=self,
             data_right=data_right,
@@ -208,7 +213,7 @@ class DataFrameContinuous(pd.DataFrame):
             self,
             dict_agg: None | dict[str, list[Any]] = None,
             verbose: bool = False
-    ):
+    ) -> 'DataFrameContinuous':
         df = base.aggregate_duplicates(
             df=self,
             id_discrete=self._discrete_index,
@@ -223,7 +228,7 @@ class DataFrameContinuous(pd.DataFrame):
             target_size: int,
             dict_agg: None | dict[str, list[Any]] = None,
             verbose: bool = False
-    ):
+    ) -> 'DataFrameContinuous':
         df = base.aggregate_continuous_data(
                 df=self,
                 id_discrete=self._discrete_index,
@@ -239,7 +244,7 @@ class DataFrameContinuous(pd.DataFrame):
             target_size: int,
             columns_sum_aggregation: list[str] = None,
             verbose: bool = False
-    ):
+    ) -> 'DataFrameContinuous':
         df = base.split_segment(
             df=self,
             id_discrete=self._discrete_index,
@@ -257,7 +262,7 @@ class DataFrameContinuous(pd.DataFrame):
             dict_agg: dict[str, list[Any]] | None = None,
             strict_size: bool = False,
             verbose: bool = False
-    ):
+    ) -> 'DataFrameContinuous':
         df = base.homogenize_within(
             df=self,
             id_discrete=self._discrete_index,
@@ -274,7 +279,7 @@ class DataFrameContinuous(pd.DataFrame):
             self,
             df_segmentation: pd.DataFrame,
             dict_agg: dict[str, list[str]] | None = None
-    ):
+    ) -> 'DataFrameContinuous':
         if len(df_segmentation.columns) > len(self._discrete_index) + len(self._continuous_index):
             warnings.warn("df_segmentation contains more columns than necessary. "
                           "Other columns than discrete or continuous indices are dropped.")
