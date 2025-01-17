@@ -128,7 +128,79 @@ def test_merge_event(get_examples_dataframe_continuous):
         id_continuous=["t1", "t2"],
         id_event="pk"
     )
+    assert str(res_internal_method) == str(res_external_method), (res_internal_method, res_external_method)
+    assert isinstance(res_internal_method, DataFrameContinuous), type(res_internal_method)
+
+
+def test_aggregate_duplicates(get_advanced_examples_dataframe_continuous):
+    _, df = get_advanced_examples_dataframe_continuous
+    df = tools.build_admissible_data(
+        df=df,
+        id_discrete=["id"],
+        id_continuous=["t1", "t2"]
+    )
+    df = DataFrameContinuous(df, discrete_index=["id"], continuous_index=["t1", "t2"])
+    res_internal_method = df.aggregate_duplicates()
+    res_external_method = base.aggregate_duplicates(
+        df=df,
+        id_discrete=["id"],
+        id_continuous=["t1", "t2"]
+    )
+    assert str(res_internal_method) == str(res_external_method), (res_internal_method, res_external_method)
+    assert isinstance(res_internal_method, DataFrameContinuous), type(res_internal_method)
+
+
+def test_split_segment(get_examples_dataframe_continuous):
+    df, _ = get_examples_dataframe_continuous
+    res_internal_method = df.split_segment(
+        target_size=10
+    )
+    res_external_method = base.split_segment(
+        df=df,
+        id_discrete=["id"],
+        id_continuous=["t1", "t2"],
+        target_size=10,
+    )
+    assert str(res_internal_method) == str(res_external_method), (res_internal_method, res_external_method)
+    assert isinstance(res_internal_method, DataFrameContinuous), type(res_internal_method)
+
+
+def test_homogenize(get_examples_dataframe_continuous):
+    df, _ = get_examples_dataframe_continuous
+    res_internal_method = df.homogenize(
+        target_size=50
+    )
+    res_external_method = base.homogenize_within(
+        df=df,
+        id_discrete=["id"],
+        id_continuous=["t1", "t2"],
+        target_size=50,
+    )
     print(res_internal_method)
     print(res_external_method)
+    assert str(res_internal_method) == str(res_external_method), (res_internal_method, res_external_method)
+    assert isinstance(res_internal_method, DataFrameContinuous), type(res_internal_method)
+
+
+def test_aggregate_on_segmentation(get_examples_dataframe_continuous):
+    df, _ = get_examples_dataframe_continuous
+    df_data = df.homogenize(
+        target_size=20
+    )
+    df_segmentation = df.split_segment(
+        target_size=50,
+    )
+    df_segmentation = df_segmentation[["id", "t1", "t2"]]
+    res_internal_method = df_data.aggregate_on_segmentation(
+        df_segmentation=df_segmentation,
+        dict_agg={"sum": ["data1"]}
+    )
+    res_external_method = base.aggregate_on_segmentation(
+        df_segmentation=df_segmentation,
+        df_data=df_data,
+        id_discrete=["id"],
+        id_continuous=["t1", "t2"],
+        dict_agg={"sum": ["data1"]}
+    )
     assert str(res_internal_method) == str(res_external_method), (res_internal_method, res_external_method)
     assert isinstance(res_internal_method, DataFrameContinuous), type(res_internal_method)

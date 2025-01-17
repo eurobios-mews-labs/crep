@@ -204,14 +204,6 @@ class DataFrameContinuous(pd.DataFrame):
         )
         return self._return(df)
 
-    def suppress_duplicates(self):
-        df = base.suppress_duplicates(
-            df=self,
-            id_discrete=self._discrete_index,
-            id_continuous=self._continuous_index,
-        )
-        return self._return(df)
-
     def aggregate_duplicates(
             self,
             dict_agg: None | dict[str, list[Any]] = None,
@@ -283,6 +275,10 @@ class DataFrameContinuous(pd.DataFrame):
             df_segmentation: pd.DataFrame,
             dict_agg: dict[str, list[str]] | None = None
     ):
+        if len(df_segmentation.columns) > len(self._discrete_index) + len(self._continuous_index):
+            warnings.warn("df_segmentation contains more columns than necessary. "
+                          "Other columns than discrete or continuous indices are dropped.")
+            df_segmentation = df_segmentation[[*self._discrete_index, *self._continuous_index]]
         df = base.aggregate_on_segmentation(
             df_segmentation=df_segmentation,
             df_data=self,

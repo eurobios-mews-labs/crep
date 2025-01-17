@@ -847,7 +847,7 @@ def test_unbalanced_concat_case12():
     })), "\n" + str(df_test)
 
 
-def test_fill_segmentation():
+def test_aggregate_on_segmentation():
     df_segm = pd.DataFrame({"discr1": [1000]*2 + [2000]*2,
                             "cont1": [0, 100, 0, 100],
                             "cont2": [100, 200, 100, 200]})

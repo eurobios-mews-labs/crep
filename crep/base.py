@@ -1180,7 +1180,7 @@ def homogenize_within(
         initial_ts = f"{target_size}"
         target_size = max(int(df["__diff__"].min() * 1.33), 20)
         warnings.warn(f"Specified target_size for method {method} was not congruent with segment sizes in the"
-                      " dataframe. target_size has been modified from " + initial_ts + f" to{target_size}.")
+                      " dataframe. target_size has been modified from " + initial_ts + f" to {target_size}.")
 
     if "__diff__" in df.columns:
         df = df.drop("__diff__", axis=1)
