@@ -15,5 +15,5 @@ dependencies = [
 ]
 
 [tool.setuptools.packages.find]
-include = ["data*"]  # package names should match these glob patterns (["*"] by default)
+include = ["data*", "."]  # package names should match these glob patterns (["*"] by default)
 
