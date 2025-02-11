@@ -185,7 +185,7 @@ def test_create_continuity_limit():
                        "cont1": [50, 80, 50, 90, 150, 190, 80, 1200],
                        "cont2": [80, 150, 85, 125, 172, 250, 105, 1235],
                        "date": list(range(2000, 2016, 2))})
-    df_test = tools.create_continuity_modified(
+    df_test = tools.create_continuity(
         df=df,
         id_discrete=["discr1", "discr2"],
         id_continuous=["cont1", "cont2"],

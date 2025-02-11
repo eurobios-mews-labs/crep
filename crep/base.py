@@ -86,7 +86,7 @@ def merge(
     df.index = range(len(df))
     if remove_duplicates:
         df = suppress_duplicates(df, id_discrete=id_discrete,
-                                 continuous_index=id_continuous)
+                                 id_continuous=id_continuous)
     if verbose:
         print("[merge] nb rows left  table frame ", data_left.shape[0])
         print("[merge] nb rows right table frame ", data_right.shape[0])
@@ -96,7 +96,9 @@ def merge(
 
 def unbalanced_merge(
         data_admissible: pd.DataFrame,
-        data_not_admissible: pd.DataFrame, id_discrete: iter, id_continuous: [Any, Any]) -> pd.DataFrame:
+        data_not_admissible: pd.DataFrame,
+        id_discrete: iter,
+        id_continuous: [Any, Any]) -> pd.DataFrame:
     """
     Merge admissible and non-admissible dataframes based on discrete and continuous identifiers.
 
@@ -464,7 +466,8 @@ def aggregate_constant(df: pd.DataFrame,
     return data_merge[df.columns].drop_duplicates().astype(dtypes)
 
 
-def __merge_index(data_left, data_right,
+def __merge_index(data_left,
+                  data_right,
                   id_discrete,
                   id_continuous,
                   names=("left", "right")):
@@ -479,19 +482,15 @@ def __merge_index(data_left, data_right,
 
 
 def merge_event(
-        data_left: pd.DataFrame, data_right: pd.DataFrame,
+        data_left: pd.DataFrame,
+        data_right: pd.DataFrame,
         id_discrete: iter,
         id_continuous: [Any, Any],
         id_event
 ):
     """
-    Merges two dataframes on both discrete and continuous indices, with forward-filling of missing data.
-
-    This function merges two Pandas DataFrames (`data_left` and `data_right`) based on discrete and continuous keys.
-    It assigns the event data from data_right to the correct segment in data_left, if the event is not "out-of-bound"
-    relative to the segments in data_left. The result is a dataframe with a new row for each event. Rows with NaN
-    event data are kept to represent the segment state prior to the occurrence of any event (as such the returned
-    dataframe contains duplicates based on subsets of columns id_discrete and id_continuous).
+    Assigns the details of events occurring at a specific points, in data_right, to the corresponding segment
+    in data_left.
 
     Parameters
     ----------
@@ -514,51 +513,46 @@ def merge_event(
         A merged dataframe that combines `data_left` and `data_right`.
 
     """
-    data_left_ = data_left.__deepcopy__()
-    data_right_ = data_right.__deepcopy__()
-    data_left_ = _increasing_continuous_index(data_left_, id_continuous)
+    if not tools.admissible_dataframe(data=data_left, id_discrete=id_discrete, id_continuous=id_continuous):
+        raise Exception("The left dataframe is not admissible. Consider using aggregate_duplicates() and "
+                        "tools.build_admissible_data() if you want to make the dataframe admissible.")
+    else:
+        df1 = data_left.copy()
+        df2 = data_right.copy()
+        df1 = df1.fillna(1234.56789)
+        df1["__t__"] = True
+        df2["__t__"] = False
+        df = pd.concat([df1, df2], axis=0)
+        df.loc[df["__t__"], id_event] = df.loc[df["__t__"], id_continuous[1]]
+        df = df.sort_values(by=[*id_discrete, id_event]).reset_index(drop=True)
 
-    data_left_ = data_left_.reset_index(drop=True)
-    data_right_ = data_right_.reset_index(drop=True)
+        # ========== identify match with pk event in df2 and concerned row in df1 ==========
+        mask = (~df[id_discrete].eq(df[id_discrete].shift()))
+        df["__new_seg__"] = mask.sum(axis=1) > 0
+        df["__new_seg_b_"] = np.nan
+        df.loc[df["__t__"], "__new_seg_b_"] = df.loc[df["__t__"], "__new_seg__"]
+        df["__new_seg_b_"] = df["__new_seg_b_"].bfill()
+        df["__no_match__"] = False
+        df.loc[(~df["__t__"]) & df["__new_seg_b_"], "__no_match__"] = True
 
-    data_left_["__t__"] = True
-    data_right_["__t__"] = False
+        if df["__no_match__"].sum() > 1:
+            warnings.warn("Not all events in data_right could be associated to a segment in date_left.")
+            print(f"In merge_event, dropped: {df['__no_match__'].sum()}/{df2.shape[0]} rows")
+        df = df.loc[~df["__no_match__"], :].reset_index(drop=True)
 
-    df_merge = pd.concat([data_left_, data_right_], axis=0)
-    df_merge.loc[df_merge["__t__"], id_event] = df_merge.loc[df_merge["__t__"], id_continuous[1]]
-    df_merge = df_merge.sort_values(by=[*id_discrete, id_event]).reset_index(drop=True)
+        # =========================== merge info from df1 and df2 ===========================
+        df.loc[~df["__t__"], id_continuous] = np.nan
+        df[df1.columns] = df[df1.columns].bfill()
+        df.loc[df["__t__"], id_event] = np.nan
+        df = df.replace(1234.56789, np.nan)
 
-    # event in data_right_ can be out-of-bound based on segments in data_left_.
-    mask = (~df_merge[id_discrete].eq(df_merge[id_discrete].shift()))
-    df_merge["__new_seg__"] = mask.sum(axis=1) > 0
-    df_merge["__new_seg_b_"] = np.nan
-    df_merge.loc[df_merge["__t__"], "__new_seg_b_"] = df_merge.loc[df_merge["__t__"], "__new_seg__"]
-    df_merge["__new_seg_b_"] = df_merge["__new_seg_b_"].bfill()
-    df_merge["__oob__"] = False
-    df_merge.loc[(~df_merge["__t__"]) & df_merge["__new_seg_b_"], "__oob__"] = True
+        df = df.sort_values(
+            by=[*id_discrete, id_continuous[1], "__t__"],
+            ascending=[*[True] * len(id_discrete), True, False]
+        ).reset_index(drop=True)
+        df = df.drop(columns=[col for col in df.columns if "__" in col])
 
-    if df_merge["__oob__"].sum() > 1:
-        warnings.warn("Not all events in data_right could be associated with a segment from data_left.")
-        print(f"Dropped: {df_merge['__oob__'].sum()}/{data_left_.shape[0]} rows")
-    df_merge = df_merge.loc[~df_merge["__oob__"], :].reset_index(drop=True)
-
-    # assign event data to
-    df_merge.loc[~df_merge["__t__"], id_continuous] = np.nan
-    df_merge[data_left_.columns] = df_merge[data_left_.columns].bfill()
-    df_merge.loc[df_merge["__t__"], id_event] = np.nan
-
-    df_merge = df_merge.sort_values(
-        by=[*id_discrete, id_continuous[1], "__t__"],
-        ascending=[*[True] * len(id_discrete), True, False]
-    ).reset_index(drop=True)
-    df_merge = df_merge.drop(columns=[col for col in df_merge.columns if "__" in col])
-
-    cols_left = [col for col in data_left.columns if col not in data_right.columns]
-    cols_right = [col for col in data_right.columns if col not in data_left.columns]
-
-    df_merge = df_merge[id_discrete + id_continuous + cols_left + cols_right]
-
-    return df_merge
+        return df
 
 
 def create_regular_segmentation(
@@ -745,14 +739,14 @@ def __fix_discrete_index(
     return data_left, data_right
 
 
-def suppress_duplicates(df, id_discrete, continuous_index):
-    df = df.sort_values([*id_discrete, *continuous_index])
-    df_duplicated = df.drop([*id_discrete, *continuous_index], axis=1)
+def suppress_duplicates(df, id_discrete, id_continuous):
+    df = df.sort_values([*id_discrete, *id_continuous])
+    df_duplicated = df.drop([*id_discrete, *id_continuous], axis=1)
     mat_duplicated = pd.DataFrame(
         df_duplicated.iloc[1:].values == df_duplicated.iloc[
                                          :-1].values)
-    id1 = continuous_index[0]
-    id2 = continuous_index[1]
+    id1 = id_continuous[0]
+    id2 = id_continuous[1]
     index = mat_duplicated.sum(axis=1) == df_duplicated.shape[1]
     index = np.where(index)[0]
     df1 = df.iloc[index]
@@ -1026,7 +1020,7 @@ def split_segment(
         id_discrete: list[Any],
         id_continuous: [Any, Any],
         target_size: int,
-        col_sum_agg: list[str] = None,
+        columns_sum_aggregation: list[str] = None,
         verbose: bool = False
 ) -> pd.DataFrame:
     """
@@ -1042,7 +1036,7 @@ def split_segment(
         continuous columns that delimit the segments' start and end
     target_size: integer > 0
         targeted segment size
-    col_sum_agg: list[str], optional
+    columns_sum_aggregation: list[str], optional
         Default to empty list. Some columns may have to be summed over several segments when creating super segments.
         If so, splitting a row and assigning to each new row the same value as in the original non-split row may
         result in inflated sums later on. To counter that, the columns that should later be summed are specified in
@@ -1056,8 +1050,8 @@ def split_segment(
     df: pandas dataframe
     """
     df = df.copy()
-    if col_sum_agg is None:
-        col_sum_agg = []
+    if columns_sum_aggregation is None:
+        columns_sum_aggregation = []
 
     df["__n_cut__"] = tools.n_cut_finder(
         df=df,
@@ -1071,7 +1065,7 @@ def split_segment(
     if "__diff__" not in df.columns:
         df["__diff__"] = df[id_continuous[1]] - df[id_continuous[0]]
 
-    for col in col_sum_agg:
+    for col in columns_sum_aggregation:
         df[col] = df[col] / df["__diff__"]
 
     new_rows = []
@@ -1090,7 +1084,7 @@ def split_segment(
     df = pd.concat(new_rows, axis=0).sort_values(by=[*id_discrete, id_continuous[1]]).reset_index(drop=True)
 
     df["__diff__"] = df[id_continuous[1]] - df[id_continuous[0]]
-    for col in col_sum_agg:
+    for col in columns_sum_aggregation:
         df[col] = df[col] * df["__diff__"]
 
     df = df.drop(["__diff__", "__n_cut__", "__n_cut_dyn__"], axis=1)
@@ -1186,7 +1180,7 @@ def homogenize_within(
         initial_ts = f"{target_size}"
         target_size = max(int(df["__diff__"].min() * 1.33), 20)
         warnings.warn(f"Specified target_size for method {method} was not congruent with segment sizes in the"
-                      " dataframe. target_size has been modified from " + initial_ts + f" to{target_size}.")
+                      " dataframe. target_size has been modified from " + initial_ts + f" to {target_size}.")
 
     if "__diff__" in df.columns:
         df = df.drop("__diff__", axis=1)
@@ -1204,7 +1198,7 @@ def homogenize_within(
             id_discrete=id_discrete,
             id_continuous=id_continuous,
             target_size=target_size // 3 if "agg" in method else target_size,
-            col_sum_agg=col_sum_agg,
+            columns_sum_aggregation=col_sum_agg,
             verbose=verbose
         )
 
@@ -1337,7 +1331,7 @@ def segmentation_irregular(
         adjusted to be as close as possible to length_target.
     """
 
-    df_new = tools.create_continuity_modified(
+    df_new = tools.create_continuity(
         df=df,
         id_discrete=id_discrete,
         id_continuous=id_continuous,
