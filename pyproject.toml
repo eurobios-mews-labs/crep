@@ -11,9 +11,9 @@ readme = "README.md"
 requires-python = '>=3.6'
 dependencies = [
   "pandas>1",
-  "numpy",
+  "numpy"
 ]
 
 [tool.setuptools.packages.find]
-include = ["data*", "*"]  # package names should match these glob patterns (["*"] by default)
+include = ["data*", "*"] 
 
