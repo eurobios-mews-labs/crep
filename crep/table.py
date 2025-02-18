@@ -65,6 +65,14 @@ class DataFrameContinuous(pd.DataFrame):
                                        continuous_index=self._continuous_index)
         return result
 
+    def _return(self, df):
+        if isinstance(df, DataFrameContinuous):
+            return df
+        else:
+            return DataFrameContinuous(df,
+                                       discrete_index=self._discrete_index,
+                                       continuous_index=self._continuous_index)
+
     def concat(self, other_dfs: pd.DataFrame | list[pd.DataFrame], **kwargs) -> 'DataFrameContinuous':
         """
         concat is an external function (not in the pd.DataFrame class, but called with pd.concat()
@@ -74,17 +82,7 @@ class DataFrameContinuous(pd.DataFrame):
         if type(other_dfs) is not list:
             other_dfs = [other_dfs]
         new_df = pd.concat([df]+other_dfs, **kwargs)
-        return DataFrameContinuous(new_df,
-                                   discrete_index=self._discrete_index,
-                                   continuous_index=self._continuous_index)
-
-    def _return(self, df):
-        if isinstance(df, DataFrameContinuous):
-            return df
-        else:
-            return DataFrameContinuous(df,
-                                       discrete_index=self._discrete_index,
-                                       continuous_index=self._continuous_index)
+        return self._return(new_df)
 
     def reorder_columns(self):
         df = self
@@ -103,23 +101,35 @@ class DataFrameContinuous(pd.DataFrame):
         df = df.reorder_columns()
         return self._return(df)
 
-    def filter_by_discrete_variables(self, dict_range: dict[str, tuple[Any | None, Any | None]]) -> 'DataFrameContinuous':
+    def filter_by_discrete_variables(
+            self,
+            dict_range: dict[str, tuple[Any | None, Any | None]],
+            keep_nan: bool = False
+    ) -> 'DataFrameContinuous':
         """
         Filters a dataset by keeping only the specified values
 
         Parameters
         ----------
         dict_range: dict[str, tuple[Any, Any]]
-        A dictionary with for keys the name of the variables and for values a tuple containing the minimum value
-        to keep and the maximum value to keep
+            A dictionary with for keys the name of the variables and for values a tuple containing the minimum value
+            to keep and the maximum value to keep
+        keep_nan: optional, default to False
+            if True, rows with nan are kept
         """
         df = self
         for k, v in dict_range.items():
             mask = df[k].isin(v)
+            if keep_nan:
+                mask = mask | df[k].isna()
             df = df.loc[mask, :].reset_index(drop=True)
         return self._return(df)
 
-    def filter_by_continuous_variables(self, dict_range: dict[str, tuple[Any | None, Any | None]]) -> 'DataFrameContinuous':
+    def filter_by_continuous_variables(
+            self,
+            dict_range: dict[str, tuple[Any | None, Any | None]],
+            keep_nan: bool = True,
+    ) -> 'DataFrameContinuous':
         """
         Filter a dataset by keeping the values above, between or below continuous values
 
@@ -128,6 +138,8 @@ class DataFrameContinuous(pd.DataFrame):
         dict_range: dict[str, tuple[Any, Any]]
             A dictionary with for keys the name of the variables and for values a tuple containing the minimum value
             to keep and the maximum value to keep
+        keep_nan: optional, default to True
+            if True, rows with nan are kept
         """
         df = self
         for k, v in dict_range.items():
@@ -140,6 +152,8 @@ class DataFrameContinuous(pd.DataFrame):
                 mask = df[k] >= minimum
             else:
                 mask = (df[k] >= minimum) & (df[k] <= maximum)
+            if keep_nan:
+                mask = mask | df[k].isna()
             df = df.loc[mask, :].reset_index(drop=True)
         return self._return(df)
 
@@ -173,11 +187,11 @@ class DataFrameContinuous(pd.DataFrame):
 
     def create_continuity(self, limit=None, sort=False) -> 'DataFrameContinuous':
         df = tools.create_continuity(
-                df=self,
-                id_discrete=self._discrete_index,
-                id_continuous=self._continuous_index,
-                limit=limit,
-                sort=sort
+            df=self,
+            id_discrete=self._discrete_index,
+            id_continuous=self._continuous_index,
+            limit=limit,
+            sort=sort
         )
         return self._return(df)
 
