@@ -404,7 +404,6 @@ def aggregate_constant(df: pd.DataFrame,
                        id_continuous: iter,
                        ):
     """
-
     Parameters
     ----------
     df
@@ -413,7 +412,6 @@ def aggregate_constant(df: pd.DataFrame,
 
     Returns
     -------
-
     """
     data_ = df.copy(deep=True)
     dtypes = data_.dtypes
@@ -901,7 +899,10 @@ def aggregate_duplicates(
     dict_renaming = {}
     for i, items in enumerate(dict_agg.items()):
         k, v = items
-        data = df_dupl[group_by + v].groupby(by=group_by).agg(k).reset_index().drop(group_by, axis=1)
+        if k == "mode":
+            data = df_dupl[group_by + v].groupby(by=group_by).agg(lambda x: ", ".join(x.mode().to_list()[0])).reset_index().drop(group_by, axis=1)
+        else:
+            data = df_dupl[group_by + v].groupby(by=group_by).agg(k).reset_index().drop(group_by, axis=1)
         df_gr.append(data)
         colnames += [f"{k}_" + col for col in v]
         for col in v:
