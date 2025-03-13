@@ -131,7 +131,8 @@ class DataFrameContinuous(pd.DataFrame):
 
     @modifier
     def filter_by_continuous_variables(self,
-                                       dict_range: dict[str, tuple[Any | None, Any | None]]) -> 'DataFrameContinuous':
+                                       dict_range: dict[str, tuple[Any | None, Any | None]],
+                                       keep_nan=True) -> 'DataFrameContinuous':
         """
         Filter a dataset by keeping the values above, between or below continuous values
 
