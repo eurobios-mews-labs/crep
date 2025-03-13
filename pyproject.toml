@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "crep"
-version = "2025.1.3"
+version = "2025.1.5"
 description = ""
 authors = [{ name = 'Vincent Laurent', email = 'vlaurent@eurobios.com' }]
 readme = "README.md"

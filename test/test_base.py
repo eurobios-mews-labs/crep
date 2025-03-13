@@ -52,6 +52,7 @@ def test_merge_basic(get_examples):
     assert ret_i.equals(ret_i_th)
     assert ret_r.equals(ret_th_r)
 
+
 def test_merge_basic_empty_id_discrete(get_examples):
     df_left, df_right = get_examples
     df_left = df_left.loc[df_left["id"] == 1].drop(columns="id")
@@ -68,7 +69,7 @@ def test_merge_basic_empty_id_discrete(get_examples):
          't2': {0: 5, 1: 10, 2: 80, 3: 100},
          'data1': {0: 0.4, 1: 0.4, 2: 0.3, 3: 0.3},
          'data2': {0: np.nan, 1: 0.25, 2: 0.25, 3: np.nan}
-    })
+         })
     ret_th = ret_th.astype(ret.dtypes)
     ret_i_th = ret_th.dropna()
     ret_th_l = ret_th.dropna(subset=["data1"])
@@ -80,6 +81,7 @@ def test_merge_basic_empty_id_discrete(get_examples):
 
     assert ret.equals(ret_th)
     assert ret_l.equals(ret_th_l)
+
 
 def test__merge(get_advanced_examples):
     df_left, df_right = get_advanced_examples
@@ -175,13 +177,35 @@ def test_build_admissible_dataset(get_advanced_examples):
     assert df_out_out.equals(df_out)
 
 
-def test_unbalanced_merge(get_advanced_examples):
-    # FIXME correct this
-    df_left, df_right = get_advanced_examples
+def test_unbalanced_merge_vs_merge(get_examples):
+    df_left, df_right = get_examples
     df_ret = unbalanced_merge(df_left, df_right,
                               id_discrete=["id"],
-                              id_continuous=["t1", "t2"])
+                              id_continuous=["t1", "t2"], how="outer")
+    df_ret_2 = merge(df_left, df_right,
+                     id_discrete=["id"],
+                     id_continuous=["t1", "t2"], how="outer")
+    assert df_ret.equals(df_ret_2)
 
+
+def test_unbalanced_merge(get_examples):
+    df_left, df_right = get_examples
+    df_left = df_left.replace(1, 2)
+    df_ret = unbalanced_merge(df_right, df_left,
+                              id_discrete=["id"],
+                              id_continuous=["t1", "t2"], how="outer")
+
+    data = {
+        "id": [2.0] * 12,
+        "t1": [0, 0, 10, 10, 80, 80, 90, 100, 110, 120, 130, 135],
+        "t2": [10, 10, 80, 80, 90, 90, 100, 110, 120, 130, 135, 145],
+        "data2": [0.15, 0.15, 0.15, 0.15, np.nan, np.nan, np.nan, 0.35, 0.35, 0.35, 0.50, np.nan],
+        "data1": [0.4, 0.1, 0.1, 0.3, 0.1, 0.3, 0.3, 0.3, np.nan, 0.2, 0.2, 0.2]
+    }
+
+    df = pd.DataFrame(data).astype(float)
+    assert df.equals(df)
+    
 
 def test_merge_how(get_advanced_examples):
     data_left, data_right = get_advanced_examples
@@ -847,11 +871,11 @@ def test_unbalanced_concat_case12():
     })), "\n" + str(df_test)
 
 
-def test_fill_segmentation():
-    df_segm = pd.DataFrame({"discr1": [1000]*2 + [2000]*2,
+def test_aggregate_on_segmentation():
+    df_segm = pd.DataFrame({"discr1": [1000] * 2 + [2000] * 2,
                             "cont1": [0, 100, 0, 100],
                             "cont2": [100, 200, 100, 200]})
-    df_feat = pd.DataFrame({"discr1": [1000]*4 + [2000]*4,
+    df_feat = pd.DataFrame({"discr1": [1000] * 4 + [2000] * 4,
                             "cont1": [0, 40, 110, 160, 0, 45, 95, 165],
                             "cont2": [40, 110, 160, 200, 45, 95, 165, 200],
                             "data1": [2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008],

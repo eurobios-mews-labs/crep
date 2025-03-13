@@ -45,9 +45,13 @@ def test_create_zones():
 def test_build_admissible_data_frame():
     ret = tools.build_admissible_data(df=data.drop(columns="__zone__"), id_discrete=id_discrete,
                                       id_continuous=id_continuous)
+    ret_ret = tools.build_admissible_data(df=ret, id_discrete=id_discrete,
+                                      id_continuous=id_continuous)
+    assert len(ret) == len(ret_ret)
     ret = ret.drop_duplicates(subset=[*id_discrete, *id_continuous])
 
     assert tools.admissible_dataframe(ret, id_discrete=id_discrete, id_continuous=id_continuous)
+
 
 
 def test_fix_point_non_admissible(get_examples):
@@ -102,20 +106,38 @@ def test_concretize_aggregation():
                        "discr2": [1] * 2 + [2] * 3 + [1] * 3,
                        "cont1": [50, 100, 50, 100, 150, 50, 100, 150],
                        "cont2": [100, 150, 100, 150, 200, 100, 150, 200],
-                       "date": [2008, 2010, 2014, 2016, 2018, 2020, 2022, 2024]})
+                       "date": [2008, 2010, 2014, 2016, 2018, 2020, 2022, 2024],
+                       "objet": ["A", "B", "A", "A", "B", "B", "B", "B"]})
     df_test = tools.concretize_aggregation(
         df,
         id_discrete=["discr1", "discr2"],
         id_continuous=["cont1", "cont2"],
-        dict_agg={"min": ["date"], "max": ["date"], "sum": ["date"], "mean": ['date']}, verbose=True
+        dict_agg={"min": ["date"], "max": ["date"], "sum": ["date"], "mean": ['date'], "mode": ["objet"]}, verbose=True
     )
     assert \
         ((df_test["min_date"].to_list() == [2008, 2014, 2020])
          & (df_test["max_date"].to_list() == [2010, 2018, 2024])
          & (df_test["sum_date"].to_list() == [4018, 6048, 6066])
-         & (df_test["mean_date"].to_list() == [2009.0, 2016.0, 2022.0])), \
+         & (df_test["mean_date"].to_list() == [2009.0, 2016.0, 2022.0])
+         & (df_test["mode_objet"].to_list() == ["A, B", "A", "B"])), \
         "\n" + str(df_test)
 
+
+def test_concretize_aggregation2():
+    df = pd.DataFrame({"discr1": [1000, 1000, 1000, 1000, 1000, 2000, 2000, 2000],
+                       "discr2": [1] * 2 + [2] * 3 + [1] * 3,
+                       "cont1": [50, 100, 50, 100, 150, 50, 100, 150],
+                       "cont2": [100, 150, 100, 150, 200, 100, 150, 200],
+                       "date": [2008, 2010, 2014, 2016, 2018, 2020, 2022, 2024],
+                       "objet": ["A", "B", "A", "A", "B", "B", "B", "B"]})
+    df_test = tools.concretize_aggregation(
+        df,
+        id_discrete=["discr1", "discr2"],
+        id_continuous=["cont1", "cont2"],
+        dict_agg=None,
+        verbose=True
+    )
+    assert "mean_date" in list(df_test.columns) and "mode_objet" in list(df_test.columns), "\n" + str(df_test)
 
 def test_n_cut_finder_case1():
     df = pd.DataFrame({"discr1": [1000] * 8 + [2000] * 4,
@@ -185,7 +207,7 @@ def test_create_continuity_limit():
                        "cont1": [50, 80, 50, 90, 150, 190, 80, 1200],
                        "cont2": [80, 150, 85, 125, 172, 250, 105, 1235],
                        "date": list(range(2000, 2016, 2))})
-    df_test = tools.create_continuity_modified(
+    df_test = tools.create_continuity(
         df=df,
         id_discrete=["discr1", "discr2"],
         id_continuous=["cont1", "cont2"],
@@ -215,3 +237,9 @@ def test_name_simplifier():
 def test_sort(get_examples):
     df = tools.sort(get_examples[0], id_discrete=["id"], id_continuous=id_continuous)
     assert all(np.sort(get_examples[0]["id"]) == df["id"].values)
+
+def test_count_count_parallel_segment(get_advanced_examples):
+    df_left, df_right = get_advanced_examples
+    ret = tools.count_parallel_segment(
+        df_right, id_discrete=["id"],
+        id_continuous=["t1", "t2"])

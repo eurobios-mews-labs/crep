@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from crep import merge, unbalanced_merge, unbalanced_concat, aggregate_constant
+from crep import merge, aggregate_constant
 from crep import tools, base
 
 plt.style.use('./examples/.matplotlibrc')
@@ -119,34 +119,29 @@ illustrate_2_inputs(merge,
                     id_discrete=["id"],
                     continuous_index=["t1", "t2"]
                     )
-illustrate_2_inputs(unbalanced_merge,
+illustrate_2_inputs(base.unbalanced_merge,
+                    pd.read_csv("data/base_right.csv").drop([0, 1, 5]),
+                    pd.read_csv("data/base_left.csv").replace(1, 2),
+                    dict(),
+                    id_discrete=["id"],
+                    continuous_index=["t1", "t2"]
+                    )
+illustrate_2_inputs(base.unbalanced_concat,
                     pd.read_csv("data/base_left.csv"),
                     pd.read_csv("data/base_right.csv"),
                     dict(),
                     id_discrete=["id"],
                     continuous_index=["t1", "t2"]
                     )
-illustrate_2_inputs(unbalanced_concat,
-                    pd.read_csv("data/base_left.csv"),
-                    pd.read_csv("data/base_right.csv"),
-                    dict(),
-                    id_discrete=["id"],
-                    continuous_index=["t1", "t2"]
-                    )
-
+df = pd.read_csv("data/base_left.csv")
+df.loc[6] = [2, 135, 150, 0.5]
 illustrate_1_input(tools.build_admissible_data,
-                   pd.read_csv("data/base_left.csv"),
+                   df,
                    dict(),
                    id_discrete=["id"],
                    continuous_index=["t1", "t2"]
                    )
 
-illustrate_1_input(tools.build_admissible_data,
-                   pd.read_csv("data/base_left.csv"),
-                   dict(),
-                   id_discrete=["id"],
-                   continuous_index=["t1", "t2"]
-                   )
 
 illustrate_1_input(function=aggregate_constant,
                    df=pd.read_csv("data/advanced_left.csv"),
@@ -179,11 +174,11 @@ df_seg = base.segmentation_regular(df, id_discrete=["id"],
                                    id_continuous=["t1", "t2"],
                                    length_target=7,
                                    length_gap_filling=30)
-illustrate_1_input(function=base.aggregate,
-                   df=df,
-                   parameters=dict(df_target_segmentation=df_seg),
-                   id_discrete=["id"],
-                   continuous_index=["t1", "t2"],
-                   data_columns=["data2"],
-                   as_string=False
-                   )
+# illustrate_1_input(function=base.aggregate,
+#                    df=df,
+#                    parameters=dict(df_target_segmentation=df_seg),
+#                    id_discrete=["id"],
+#                    continuous_index=["t1", "t2"],
+#                    data_columns=["data2"],
+#                    as_string=False
+#                    )

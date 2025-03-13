@@ -191,34 +191,6 @@ def create_continuity(
     if df_in["discontinuity"].sum() == 0:
         return df
     else:
-        ix__ = np.where(df_in["discontinuity"].values)[0]
-        df_add = pd.DataFrame(columns=df_in.columns, index=range(len(ix__)))
-        df_add[index] = df_in.iloc[ix__][index].values
-        df_add[id_continuous[0]] = df_in.iloc[ix__ - 1].loc[:, id_continuous[1]].values
-        df_add[id_continuous[1]] = df_in.iloc[ix__].loc[:, id_continuous[0]].values
-        if limit is not None:
-            df_add = df_add[(df_add[id_continuous[1]] - df_add[id_continuous[0]]) < limit]
-        df_in = pd.concat((df_in, df_add.dropna(axis=1, how='all')), axis=0)
-        df_in = df_in[df_in[id_continuous[0]] < df_in[id_continuous[1]]]
-    if sort:
-        df_in = df_in.sort_values([*id_discrete, *id_continuous])
-    return df_in.loc[:, col_save]
-
-
-def create_continuity_modified(
-        df: pd.DataFrame,
-        id_discrete: Iterable[Any],
-        id_continuous: [Any, Any],
-        limit=None,
-        sort=False
-) -> pd.DataFrame:
-    df_in = df.__deepcopy__()
-    col_save = np.array(df_in.columns)
-    index = [*id_discrete, *id_continuous]
-    df_in["discontinuity"] = compute_discontinuity(df_in, id_discrete, id_continuous)
-    if df_in["discontinuity"].sum() == 0:
-        return df
-    else:
         mask = (df[id_discrete].eq(df[id_discrete].shift())).sum(axis=1) < len(list(id_discrete))
         ix__ = np.where(df_in["discontinuity"].values & ~mask)[0]
         df_add = pd.DataFrame(columns=df_in.columns, index=range(len(ix__)))
@@ -374,7 +346,13 @@ def concretize_aggregation(
     if dict_agg is None:
         warnings.warn("dict_agg not specified. Default aggregation operator set to 'mean' for all features.")
         columns = [col for col in df.columns if col not in [*group_by, *id_discrete, *id_continuous]]
-        dict_agg = {"mean": columns}
+        numerical_columns = list(df[columns].select_dtypes("number").columns)
+        categorical_columns = list(df[columns].select_dtypes("object").columns)
+        dict_agg = {}
+        if len(numerical_columns) > 0:
+            dict_agg = {"mean": numerical_columns}
+        if len(categorical_columns) > 0:
+            dict_agg["mode"] = categorical_columns
 
     # define id_continuous agg operators
     if "min" in dict_agg.keys():
@@ -390,7 +368,10 @@ def concretize_aggregation(
         k, v = items
         # Means are weighted by the length of the segments. Sums are not
         # To apply weights: mean = sum of (variable * length of segment) / sum of lengths of segments
-        if k == "mean":
+        if k == "mode":
+            data = df[group_by + v].groupby(by=group_by).agg(lambda x: ", ".join(x.mode().to_list())).reset_index().drop(group_by, axis=1)
+            df_gr.append(data)
+        elif k == "mean":
             # divider
             df["__diff__"] = df[id_continuous[1]] - df[id_continuous[0]]
             divider = pd.concat([df["__diff__"]] * len(v), axis=1)
@@ -590,7 +571,34 @@ def clusterize(
             axis=1)
         return df["__lim__"]
 
-
 def sort(df: pd.DataFrame, id_discrete: list[Any], id_continuous: [Any, Any]) -> pd.DataFrame:
     return df.sort_values(by=[*id_discrete, *id_continuous])
 
+
+
+def count_parallel_segment(df, id_discrete:list[Any], id_continuous: [Any, Any]) -> pd.DataFrame:
+    """This function aims at calculating the number of track for id_discret."""
+
+    col = "parallel_count"
+    df = df.__copy__()
+    df_start = df.rename({id_continuous[0]: "___t___"}, axis=1).drop(columns=[id_continuous[1]])
+    df_stop = df.rename({id_continuous[1]: "___t___"}, axis=1).drop(columns=[id_continuous[0]])
+    df_start["count"] = 1
+    df_stop["count"] = -1
+    df_ret = pd.concat((df_start, df_stop), axis=0)
+    df_ret.sort_values(by=[*id_discrete, '___t___'], inplace=True)
+    df_ret[col] = df_ret.groupby(id_discrete)["count"].cumsum()
+    df_inter = df_ret.groupby([*id_discrete, '___t___']).agg({col: "last"}).reset_index()
+
+    change_nb_voie = df_inter[col].ne(df_inter[col].shift())
+    start = df_inter.loc[change_nb_voie, "___t___"].to_numpy()
+    stop = start[1:].tolist() + [df_inter["___t___"].iloc[-1]]
+
+    df_inter = df_inter[change_nb_voie]
+    df_inter[id_continuous[0]] =  start
+    df_inter[id_continuous[1]] = stop
+
+    df_inter = df_inter[start < stop]
+
+
+    return df_inter[[*id_discrete, *id_continuous, col]]
