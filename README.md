@@ -89,5 +89,5 @@ print(tools.sample_non_admissible_data(
 This implementation come from an SNCF DTIPG project and is
 developed and maintained by Mews Labs and SNCF DTIPG.
 
-<img src="https://www.sncf.com/themes/contrib/sncf_theme/images/logo-sncf.svg?v=3102549095" alt="drawing" width="100"/>
+<img src="./.static/sncf.png" alt="drawing" width="100"/>
 <img src="./.static/mews_labs.png" alt="drawing" width="120"/>

@@ -99,7 +99,7 @@ Acknowledgement
 
 This implementation originates from an SNCF DTIPG project and is developed and maintained by Mews Labs and SNCF DTIPG.
 
-.. image:: https://www.sncf.com/themes/contrib/sncf_theme/images/logo-sncf.svg?v=3102549095
+.. image:: ../../.static/sncf.png
    :alt: SNCF logo
    :width: 100
 
