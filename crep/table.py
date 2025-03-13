@@ -70,6 +70,14 @@ class DataFrameContinuous(pd.DataFrame):
                     self.__dict__[attrib] = self.__make_func(attrib)
 
 
+    def _return(self, df):
+        if isinstance(df, DataFrameContinuous):
+            return df
+        else:
+            return DataFrameContinuous(df,
+                                       discrete_index=self._discrete_index,
+                                       continuous_index=self._continuous_index)
+
     def concat(self, other_dfs: pd.DataFrame | list[pd.DataFrame], **kwargs) -> 'DataFrameContinuous':
         """
         concat is an external function (not in the pd.DataFrame class, but called with pd.concat()
@@ -110,8 +118,10 @@ class DataFrameContinuous(pd.DataFrame):
         Parameters
         ----------
         dict_range: dict[str, tuple[Any, Any]]
-        A dictionary with for keys the name of the variables and for values a tuple containing the minimum value
-        to keep and the maximum value to keep
+            A dictionary with for keys the name of the variables and for values a tuple containing the minimum value
+            to keep and the maximum value to keep
+        keep_nan: optional, default to False
+            if True, rows with nan are kept
         """
         df = self
         for k, v in dict_range.items():
@@ -130,6 +140,8 @@ class DataFrameContinuous(pd.DataFrame):
         dict_range: dict[str, tuple[Any, Any]]
             A dictionary with for keys the name of the variables and for values a tuple containing the minimum value
             to keep and the maximum value to keep
+        keep_nan: optional, default to True
+            if True, rows with nan are kept
         """
         df = self
         for k, v in dict_range.items():
@@ -142,6 +154,8 @@ class DataFrameContinuous(pd.DataFrame):
                 mask = df[k] >= minimum
             else:
                 mask = (df[k] >= minimum) & (df[k] <= maximum)
+            if keep_nan:
+                mask = mask | df[k].isna()
             df = df.loc[mask, :].reset_index(drop=True)
         return df
 

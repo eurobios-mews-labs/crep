@@ -346,7 +346,13 @@ def concretize_aggregation(
     if dict_agg is None:
         warnings.warn("dict_agg not specified. Default aggregation operator set to 'mean' for all features.")
         columns = [col for col in df.columns if col not in [*group_by, *id_discrete, *id_continuous]]
-        dict_agg = {"mean": columns}
+        numerical_columns = list(df[columns].select_dtypes("number").columns)
+        categorical_columns = list(df[columns].select_dtypes("object").columns)
+        dict_agg = {}
+        if len(numerical_columns) > 0:
+            dict_agg = {"mean": numerical_columns}
+        if len(categorical_columns) > 0:
+            dict_agg["mode"] = categorical_columns
 
     # define id_continuous agg operators
     if "min" in dict_agg.keys():
@@ -362,7 +368,10 @@ def concretize_aggregation(
         k, v = items
         # Means are weighted by the length of the segments. Sums are not
         # To apply weights: mean = sum of (variable * length of segment) / sum of lengths of segments
-        if k == "mean":
+        if k == "mode":
+            data = df[group_by + v].groupby(by=group_by).agg(lambda x: ", ".join(x.mode().to_list())).reset_index().drop(group_by, axis=1)
+            df_gr.append(data)
+        elif k == "mean":
             # divider
             df["__diff__"] = df[id_continuous[1]] - df[id_continuous[0]]
             divider = pd.concat([df["__diff__"]] * len(v), axis=1)

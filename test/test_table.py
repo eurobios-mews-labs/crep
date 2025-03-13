@@ -180,7 +180,6 @@ def test_homogenize(get_examples_dataframe_continuous):
     assert str(res_internal_method) == str(res_external_method), (res_internal_method, res_external_method)
     assert isinstance(res_internal_method, DataFrameContinuous), type(res_internal_method)
 
-
 def test_aggregate_on_segmentation(get_examples_dataframe_continuous):
     df, _ = get_examples_dataframe_continuous
     df_data = df.homogenize(
