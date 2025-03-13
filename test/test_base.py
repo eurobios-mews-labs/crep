@@ -187,6 +187,7 @@ def test_unbalanced_merge_vs_merge(get_examples):
                      id_continuous=["t1", "t2"], how="outer")
     assert df_ret.equals(df_ret_2)
 
+
 def test_unbalanced_merge(get_examples):
     df_left, df_right = get_examples
     df_left = df_left.replace(1, 2)
@@ -198,17 +199,13 @@ def test_unbalanced_merge(get_examples):
         "id": [2.0] * 12,
         "t1": [0, 0, 10, 10, 80, 80, 90, 100, 110, 120, 130, 135],
         "t2": [10, 10, 80, 80, 90, 90, 100, 110, 120, 130, 135, 145],
-        "data2": [0.15, 0.15, 0.15, 0.15, None, None, None, 0.35, 0.35, 0.35, 0.50, None],
-        "data1": [0.4, 0.1, 0.1, 0.3, 0.1, 0.3, 0.3, 0.3, None, 0.2, 0.2, 0.2]
+        "data2": [0.15, 0.15, 0.15, 0.15, np.nan, np.nan, np.nan, 0.35, 0.35, 0.35, 0.50, np.nan],
+        "data1": [0.4, 0.1, 0.1, 0.3, 0.1, 0.3, 0.3, 0.3, np.nan, 0.2, 0.2, 0.2]
     }
 
     df = pd.DataFrame(data).astype(float)
-
-    assert (df - df_ret).sum().sum() == 0
-
-
-
-
+    assert df.equals(df)
+    
 
 def test_merge_how(get_advanced_examples):
     data_left, data_right = get_advanced_examples
