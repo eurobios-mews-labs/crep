@@ -567,3 +567,29 @@ def sort(df: pd.DataFrame, id_discrete: list[Any], id_continuous: [Any, Any]) ->
 
 
 
+def count_parallel_segment(df, id_discrete:list[Any], id_continuous: [Any, Any]) -> pd.DataFrame:
+    """This function aims at calculating the number of track for id_discret."""
+
+    col = "parallel_count"
+    df = df.__copy__()
+    df_start = df.rename({id_continuous[0]: "___t___"}, axis=1).drop(columns=[id_continuous[1]])
+    df_stop = df.rename({id_continuous[1]: "___t___"}, axis=1).drop(columns=[id_continuous[0]])
+    df_start["count"] = 1
+    df_stop["count"] = -1
+    df_ret = pd.concat((df_start, df_stop), axis=0)
+    df_ret.sort_values(by=[*id_discrete, '___t___'], inplace=True)
+    df_ret[col] = df_ret.groupby(id_discrete)["count"].cumsum()
+    df_inter = df_ret.groupby([*id_discrete, '___t___']).agg({col: "last"}).reset_index()
+
+    change_nb_voie = df_inter[col].ne(df_inter[col].shift())
+    start = df_inter.loc[change_nb_voie, "___t___"].to_numpy()
+    stop = start[1:].tolist() + [df_inter["___t___"].iloc[-1]]
+
+    df_inter = df_inter[change_nb_voie]
+    df_inter[id_continuous[0]] =  start
+    df_inter[id_continuous[1]] = stop
+
+    df_inter = df_inter[start < stop]
+
+
+    return df_inter[[*id_discrete, *id_continuous, col]]

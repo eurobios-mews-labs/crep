@@ -45,9 +45,13 @@ def test_create_zones():
 def test_build_admissible_data_frame():
     ret = tools.build_admissible_data(df=data.drop(columns="__zone__"), id_discrete=id_discrete,
                                       id_continuous=id_continuous)
+    ret_ret = tools.build_admissible_data(df=ret, id_discrete=id_discrete,
+                                      id_continuous=id_continuous)
+    assert len(ret) == len(ret_ret)
     ret = ret.drop_duplicates(subset=[*id_discrete, *id_continuous])
 
     assert tools.admissible_dataframe(ret, id_discrete=id_discrete, id_continuous=id_continuous)
+
 
 
 def test_fix_point_non_admissible(get_examples):
@@ -215,3 +219,9 @@ def test_name_simplifier():
 def test_sort(get_examples):
     df = tools.sort(get_examples[0], id_discrete=["id"], id_continuous=id_continuous)
     assert all(np.sort(get_examples[0]["id"]) == df["id"].values)
+
+def test_count_count_parallel_segment(get_advanced_examples):
+    df_left, df_right = get_advanced_examples
+    ret = tools.count_parallel_segment(
+        df_right, id_discrete=["id"],
+        id_continuous=["t1", "t2"])

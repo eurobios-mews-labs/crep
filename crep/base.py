@@ -98,12 +98,13 @@ def unbalanced_merge(
         data_admissible: pd.DataFrame,
         data_not_admissible: pd.DataFrame,
         id_discrete: iter,
-        id_continuous: [Any, Any]) -> pd.DataFrame:
+        id_continuous: [Any, Any], how) -> pd.DataFrame:
     """
     Merge admissible and non-admissible dataframes based on discrete and continuous identifiers.
 
     Parameters
     ----------
+
     data_admissible : pd.DataFrame
         DataFrame containing admissible data.
     data_not_admissible : pd.DataFrame
@@ -112,6 +113,13 @@ def unbalanced_merge(
         List of column names representing discrete identifiers.
     id_continuous : list
         List of column names representing continuous identifiers.
+    how: str
+        how to make the merge, possible options are
+
+        - 'left'
+        - 'right'
+        - 'inner'
+        - 'outer'
 
     Returns
     -------
@@ -125,70 +133,32 @@ def unbalanced_merge(
     2. Resolves overlaps and conflicts between the admissible and non-admissible data.
     3. Merges and returns the final DataFrame.
     """
-    # assert tools.admissible_dataframe(data_admissible, id_discrete, id_continuous)
-    df_idx_w = data_admissible[[*id_discrete, *id_continuous]].copy()
-    df_idx_s = data_not_admissible[[*id_discrete, *id_continuous]].copy()
-    df_idx_w["__t__"] = True
-    df_idx_s["__t__"] = False
 
-    df_idx = pd.concat((df_idx_w, df_idx_s))
-    df_idx = df_idx.sort_values([*id_discrete, id_continuous[0], "__t__"],
-                                ascending=[*[True] * len(id_discrete), True, False])
-
-    df_idx["__id2__"] = np.nan
-    df_idx["__id1__"] = np.nan
-    df_idx.loc[df_idx["__t__"], "__id2__"] = df_idx.loc[df_idx["__t__"], id_continuous[1]]
-    df_idx.loc[df_idx["__t__"], "__id1__"] = df_idx.loc[df_idx["__t__"], id_continuous[0]]
-    df_idx["__id2__"] = df_idx["__id2__"].ffill()
-    df_idx["__id1__"] = df_idx["__id1__"].ffill()
-
-    c_resolve = df_idx["__id2__"] < df_idx[id_continuous[1]]
-    c_out = df_idx["__id2__"] < df_idx[id_continuous[0]]
-    created_columns = ["__t__", "__id2__", "__id1__"]
-
-    # =================
-    # Encompassed data
-    df_admissible = df_idx[~c_resolve].copy()
-    df_admissible_ret = pd.merge(df_admissible, data_admissible, how='inner',
-                                 left_on=[*id_discrete, "__id1__", "__id2__"], right_on=[*id_discrete, *id_continuous],
-                                 suffixes=("", "__init"))
-    df_admissible_ret = df_admissible_ret[~df_admissible_ret.__t__]
-    df_admissible_ret = df_admissible_ret.drop(
-        columns=[*created_columns, id_continuous[0] + "__init", id_continuous[1] + "__init"])
-    df_admissible_ret = pd.merge(df_admissible_ret, data_not_admissible, on=[*id_discrete, *id_continuous], how="left")
-
-    # =================
-    # To resolve data
-    df_to_resolve = df_idx[c_resolve & ~c_out].copy()
-    old = [f"{id_continuous[0]}__", f"{id_continuous[1]}__"]
-    df_to_resolve[old] = df_to_resolve[id_continuous]
-    df_to_resolve_admissible = tools.build_admissible_data(df_to_resolve.drop(columns=created_columns), id_discrete,
+    if tools.admissible_dataframe(data_not_admissible, id_discrete, id_continuous):
+        return merge(data_admissible, data_not_admissible,
+                     id_discrete=id_discrete, id_continuous=id_continuous,
+                     how=how)
+    df_to_resolve_admissible = tools.build_admissible_data(data_not_admissible, id_discrete,
                                                            id_continuous)
 
-    df_to_resolve_no_d = df_to_resolve_admissible.drop_duplicates(subset=[*id_discrete, *id_continuous])
-    if len(df_to_resolve_no_d) > 0:
-        df_to_resolve_no_d = merge(
-            df_to_resolve_no_d,
-            data_admissible, id_discrete=id_discrete, id_continuous=id_continuous,
-            how="inner")
-        df_ret = pd.merge(
-            df_to_resolve_no_d,
-            data_not_admissible,
-            left_on=[*id_discrete, *old],
-            right_on=[*id_discrete, *id_continuous], how="inner", suffixes=("", "__")
-        )
-        df_ret = df_ret[df_admissible_ret.columns]
-    else:
-        df_ret = pd.DataFrame([], columns=df_admissible_ret.columns)
-    # =================
-    # Out data
-    df_to_out = df_idx[c_resolve & c_out].copy().drop(columns=created_columns)
-    df_to_out = pd.merge(df_to_out, data_not_admissible, on=[*id_discrete, *id_continuous], how='inner')
+    df_to_resolve_no_duplicates = df_to_resolve_admissible.drop_duplicates(subset=[*id_discrete, *id_continuous]).copy()
+    df_to_resolve_no_duplicates["___id"] = range(len(df_to_resolve_no_duplicates))
+    df_to_resolve_admissible = pd.merge(df_to_resolve_no_duplicates[[*id_discrete, *id_continuous, "___id"]],
+                                        df_to_resolve_admissible,
+                                        on=[*id_discrete, *id_continuous])
 
-    df_ret_all = pd.concat((df_ret, df_admissible_ret, df_to_out), axis=0)
-    df_ret_all.index = range(len(df_ret_all))
-    df_ret_all = df_ret_all.sort_values(by=[*id_discrete, *id_continuous])
-    return df_ret_all
+
+    df_ret = merge(
+        df_to_resolve_no_duplicates[[*id_discrete, *id_continuous, "___id"]],
+        data_admissible, id_discrete=id_discrete, id_continuous=id_continuous,
+        how=how)
+
+    df_ret = pd.merge(
+        df_ret,
+        df_to_resolve_admissible.drop(columns=[*id_discrete, *id_continuous]),
+        on=["___id"], how=how, suffixes=("", "___")
+    ).drop(columns="___id")
+    return df_ret
 
 
 def unbalanced_concat(

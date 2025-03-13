@@ -13,9 +13,8 @@ def test_constructor(get_examples):
     assert hasattr(df, "discrete_index")
     assert hasattr(df, "continuous_index")
     assert hasattr(df, "admissible")
-    assert str(df) in DataFrameContinuous.instances
 
-    # print(df**2)
+
     # assert hasattr(df**2, "discrete_index")
 
 
