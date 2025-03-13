@@ -169,13 +169,9 @@ Package Contents
 .. py:function:: merge_event(data_left: pandas.DataFrame, data_right: pandas.DataFrame, id_discrete: iter, id_continuous: [Any, Any], id_event)
 
    
-   Merges two dataframes on both discrete and continuous indices, with forward-filling of missing data.
+   Assigns the details of events occurring at a specific points, in data_right, to the corresponding segment
+   in data_left.
 
-   This function merges two Pandas DataFrames (`data_left` and `data_right`) based on discrete and continuous keys.
-   It assigns the event data from data_right to the correct segment in data_left, if the event is not "out-of-bound"
-   relative to the segments in data_left. The result is a dataframe with a new row for each event. Rows with NaN
-   event data are kept to represent the segment state prior to the occurrence of any event (as such the returned
-   dataframe contains duplicates based on subsets of columns id_discrete and id_continuous).
 
    :Parameters:
 

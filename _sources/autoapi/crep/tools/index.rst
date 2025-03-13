@@ -16,7 +16,6 @@ Functions
    crep.tools.sample_non_admissible_data
    crep.tools.compute_discontinuity
    crep.tools.create_continuity
-   crep.tools.create_continuity_modified
    crep.tools.cumul_length
    crep.tools.reorder_columns
    crep.tools.name_simplifier
@@ -26,6 +25,7 @@ Functions
    crep.tools.n_cut_finder
    crep.tools.clusterize
    crep.tools.sort
+   crep.tools.count_parallel_segment
 
 
 Module Contents
@@ -126,8 +126,6 @@ Module Contents
        !! processed by numpydoc !!
 
 .. py:function:: create_continuity(df: pandas.DataFrame, id_discrete: Iterable[Any], id_continuous: [Any, Any], limit=None, sort=False) -> pandas.DataFrame
-
-.. py:function:: create_continuity_modified(df: pandas.DataFrame, id_discrete: Iterable[Any], id_continuous: [Any, Any], limit=None, sort=False) -> pandas.DataFrame
 
 .. py:function:: cumul_length(df: pandas.DataFrame, id_continuous: [Any, Any]) -> int
 
@@ -385,4 +383,27 @@ Module Contents
        !! processed by numpydoc !!
 
 .. py:function:: sort(df: pandas.DataFrame, id_discrete: list[Any], id_continuous: [Any, Any]) -> pandas.DataFrame
+
+.. py:function:: count_parallel_segment(df, id_discrete: list[Any], id_continuous: [Any, Any]) -> pandas.DataFrame
+
+   
+   This function aims at calculating the number of track for id_discret.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   ..
+       !! processed by numpydoc !!
 

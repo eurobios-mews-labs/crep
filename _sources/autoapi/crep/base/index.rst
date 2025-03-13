@@ -86,7 +86,7 @@ Module Contents
    ..
        !! processed by numpydoc !!
 
-.. py:function:: unbalanced_merge(data_admissible: pandas.DataFrame, data_not_admissible: pandas.DataFrame, id_discrete: iter, id_continuous: [Any, Any]) -> pandas.DataFrame
+.. py:function:: unbalanced_merge(data_admissible: pandas.DataFrame, data_not_admissible: pandas.DataFrame, id_discrete: iter, id_continuous: [Any, Any], how) -> pandas.DataFrame
 
    
    Merge admissible and non-admissible dataframes based on discrete and continuous identifiers.
@@ -105,6 +105,14 @@ Module Contents
 
        **id_continuous** : list
            List of column names representing continuous identifiers.
+
+       **how: str**
+           how to make the merge, possible options are
+           
+           - 'left'
+           - 'right'
+           - 'inner'
+           - 'outer'
 
 
 
@@ -222,13 +230,9 @@ Module Contents
 .. py:function:: merge_event(data_left: pandas.DataFrame, data_right: pandas.DataFrame, id_discrete: iter, id_continuous: [Any, Any], id_event)
 
    
-   Merges two dataframes on both discrete and continuous indices, with forward-filling of missing data.
+   Assigns the details of events occurring at a specific points, in data_right, to the corresponding segment
+   in data_left.
 
-   This function merges two Pandas DataFrames (`data_left` and `data_right`) based on discrete and continuous keys.
-   It assigns the event data from data_right to the correct segment in data_left, if the event is not "out-of-bound"
-   relative to the segments in data_left. The result is a dataframe with a new row for each event. Rows with NaN
-   event data are kept to represent the segment state prior to the occurrence of any event (as such the returned
-   dataframe contains duplicates based on subsets of columns id_discrete and id_continuous).
 
    :Parameters:
 
@@ -326,7 +330,7 @@ Module Contents
 
 .. py:function:: __fix_discrete_index(data_left: pandas.DataFrame, data_right: pandas.DataFrame, id_discrete_left: iter, id_discrete_right: iter)
 
-.. py:function:: suppress_duplicates(df, id_discrete, continuous_index)
+.. py:function:: suppress_duplicates(df, id_discrete, id_continuous)
 
 .. py:function:: _increasing_continuous_index(df: pandas.DataFrame, id_continuous: [Any, Any])
 
@@ -436,7 +440,7 @@ Module Contents
    ..
        !! processed by numpydoc !!
 
-.. py:function:: split_segment(df: pandas.DataFrame, id_discrete: list[Any], id_continuous: [Any, Any], target_size: int, col_sum_agg: list[str] = None, verbose: bool = False) -> pandas.DataFrame
+.. py:function:: split_segment(df: pandas.DataFrame, id_discrete: list[Any], id_continuous: [Any, Any], target_size: int, columns_sum_aggregation: list[str] = None, verbose: bool = False) -> pandas.DataFrame
 
    
    Uniformizes segment size by splitting them into shorter segments close to target size.
@@ -456,7 +460,7 @@ Module Contents
        **target_size: integer > 0**
            targeted segment size
 
-       **col_sum_agg: list[str], optional**
+       **columns_sum_aggregation: list[str], optional**
            Default to empty list. Some columns may have to be summed over several segments when creating super segments.
            If so, splitting a row and assigning to each new row the same value as in the original non-split row may
            result in inflated sums later on. To counter that, the columns that should later be summed are specified in
