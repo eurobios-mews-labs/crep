@@ -5,6 +5,7 @@
 #     https://cecill.info/
 import warnings
 from typing import Any, Literal
+import typing
 
 import numpy as np
 import pandas as pd
@@ -164,7 +165,7 @@ def unbalanced_merge(
 def unbalanced_concat(
         df1: pd.DataFrame,
         df2: pd.DataFrame,
-        id_discrete: list[Any],
+        id_discrete: typing.List[Any],
         id_continuous: [Any, Any],
         ignore_homogenize: bool = False,
         verbose: bool = False
@@ -795,9 +796,9 @@ def __table_jumps(data, id1, id2, id_discrete):
 
 def aggregate_duplicates(
         df: pd.DataFrame,
-        id_discrete: list[Any],
+        id_discrete: typing.List[Any],
         id_continuous: [Any, Any],
-        dict_agg: dict[str, list[Any]] | None = None,
+        dict_agg: dict[str, typing.List[Any]] | None = None,
         verbose: bool = False
 ):
     """
@@ -920,10 +921,10 @@ def aggregate_duplicates(
 
 def aggregate_continuous_data(
         df: pd.DataFrame,
-        id_discrete: list[Any],
+        id_discrete: typing.List[Any],
         id_continuous: [Any, Any],
         target_size: int,
-        dict_agg: None | dict[str, list[Any]] = None,
+        dict_agg: None | dict[str, typing.List[Any]] = None,
         verbose: bool = False
 ) -> pd.DataFrame:
     """
@@ -988,10 +989,10 @@ def aggregate_continuous_data(
 
 def split_segment(
         df: pd.DataFrame,
-        id_discrete: list[Any],
+        id_discrete: typing.List[Any],
         id_continuous: [Any, Any],
         target_size: int,
-        columns_sum_aggregation: list[str] = None,
+        columns_sum_aggregation: typing.List[str] = None,
         verbose: bool = False
 ) -> pd.DataFrame:
     """
@@ -1070,11 +1071,11 @@ def split_segment(
 
 def homogenize_within(
         df: pd.DataFrame,
-        id_discrete: list[Any],
+        id_discrete: typing.List[Any],
         id_continuous: [Any, Any],
         target_size: float | int | None = None,
-        method: Literal["agg", "split"] | list[Literal["agg", "split"]] | set[Literal["agg", "split"]] | None = None,
-        dict_agg: dict[str, list[Any]] | None = None,
+        method: Literal["agg", "split"] | typing.List[Literal["agg", "split"]] | set[Literal["agg", "split"]] | None = None,
+        dict_agg: dict[str, typing.List[Any]] | None = None,
         strict_size: bool = False,
         verbose: bool = False
 ) -> pd.DataFrame:

@@ -4,9 +4,9 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "crep"
-version = "2025.1.5"
+version = "2025.1.6"
 description = ""
-authors = [{ name = 'Vincent Laurent', email = 'vlaurent@eurobios.com' }]
+authors = [{ name = 'Vincent Laurent', email = 'vincent.laurent@mews-labs.com' }]
 readme = "README.md"
 requires-python = '>=3.6'
 dependencies = [
@@ -16,4 +16,3 @@ dependencies = [
 
 [tool.setuptools.packages.find]
 include = ["data*", "*"] 
-

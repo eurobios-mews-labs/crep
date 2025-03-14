@@ -5,6 +5,7 @@
 #     https://cecill.info/
 import warnings
 from typing import Any, Iterable, Literal
+import typing
 
 import numpy as np
 import pandas as pd
@@ -212,7 +213,7 @@ def cumul_length(df: pd.DataFrame, id_continuous: [Any, Any]) -> int:
     return diff.sum()
 
 
-def reorder_columns(df: pd.DataFrame, id_discrete: list[Any], id_continuous: [Any, Any]):
+def reorder_columns(df: pd.DataFrame, id_discrete: typing.List[Any], id_continuous: [Any, Any]):
     other = [col for col in df.columns if col not in [*id_discrete, *id_continuous]]
     return df[[*id_discrete, *id_continuous, *other]]
 

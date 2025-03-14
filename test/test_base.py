@@ -204,7 +204,10 @@ def test_unbalanced_merge(get_examples):
     }
 
     df = pd.DataFrame(data).astype(float)
-    assert df.equals(df)
+
+    df = df.replace(np.nan, 0)
+    df_ret = df_ret.replace(np.nan, 0)
+    assert (df.values - df_ret.values).sum().sum() == 0
     
 
 def test_merge_how(get_advanced_examples):
