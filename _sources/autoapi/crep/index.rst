@@ -24,6 +24,7 @@ Functions
    crep.aggregate_duplicates
    crep.merge_event
    crep.aggregate_on_segmentation
+   crep.unbalanced_merge
    crep.compute_discontinuity
 
 
@@ -117,7 +118,7 @@ Package Contents
    ..
        !! processed by numpydoc !!
 
-.. py:function:: aggregate_duplicates(df: pandas.DataFrame, id_discrete: list[Any], id_continuous: [Any, Any], dict_agg: dict[str, list[Any]] | None = None, verbose: bool = False)
+.. py:function:: aggregate_duplicates(df: pandas.DataFrame, id_discrete: List[Any], id_continuous: [Any, Any], dict_agg: dict[str, List[Any]] | None = None, verbose: bool = False)
 
    
    Removes duplicated rows by aggregating them.
@@ -250,6 +251,60 @@ Package Contents
 
 
 
+
+
+
+   ..
+       !! processed by numpydoc !!
+
+.. py:function:: unbalanced_merge(data_admissible: pandas.DataFrame, data_not_admissible: pandas.DataFrame, id_discrete: iter, id_continuous: [Any, Any], how) -> pandas.DataFrame
+
+   
+   Merge admissible and non-admissible dataframes based on discrete and continuous identifiers.
+
+
+   :Parameters:
+
+       **data_admissible** : pd.DataFrame
+           DataFrame containing admissible data.
+
+       **data_not_admissible** : pd.DataFrame
+           DataFrame containing non-admissible data.
+
+       **id_discrete** : list
+           List of column names representing discrete identifiers.
+
+       **id_continuous** : list
+           List of column names representing continuous identifiers.
+
+       **how: str**
+           how to make the merge, possible options are
+           
+           - 'left'
+           - 'right'
+           - 'inner'
+           - 'outer'
+
+
+
+   :Returns:
+
+       pd.DataFrame
+           A DataFrame resulting from the unbalanced merge of admissible and non-admissible data.
+
+
+
+
+
+
+
+
+   .. rubric:: Notes
+
+   The function performs the following steps:
+   1. Combines and sorts the admissible and non-admissible data based on the identifiers.
+   2. Resolves overlaps and conflicts between the admissible and non-admissible data.
+   3. Merges and returns the final DataFrame.
 
 
 

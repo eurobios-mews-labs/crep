@@ -150,7 +150,7 @@ Module Contents
    ..
        !! processed by numpydoc !!
 
-.. py:function:: reorder_columns(df: pandas.DataFrame, id_discrete: list[Any], id_continuous: [Any, Any])
+.. py:function:: reorder_columns(df: pandas.DataFrame, id_discrete: List[Any], id_continuous: [Any, Any])
 
 .. py:function:: name_simplifier(names: list[str])
 

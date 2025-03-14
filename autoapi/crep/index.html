@@ -320,6 +320,7 @@ document.write(`
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crep.aggregate_duplicates"><code class="docutils literal notranslate"><span class="pre">aggregate_duplicates()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crep.merge_event"><code class="docutils literal notranslate"><span class="pre">merge_event()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crep.aggregate_on_segmentation"><code class="docutils literal notranslate"><span class="pre">aggregate_on_segmentation()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crep.unbalanced_merge"><code class="docutils literal notranslate"><span class="pre">unbalanced_merge()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crep.compute_discontinuity"><code class="docutils literal notranslate"><span class="pre">compute_discontinuity()</span></code></a></li>
 </ul>
 </li>
@@ -364,7 +365,10 @@ document.write(`
 <tr class="row-odd"><td><p><a class="reference internal" href="#crep.aggregate_on_segmentation" title="crep.aggregate_on_segmentation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">aggregate_on_segmentation</span></code></a>(df_segmentation, df_data, ...)</p></td>
 <td><p>adds data to segmentation</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#crep.compute_discontinuity" title="crep.compute_discontinuity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_discontinuity</span></code></a>(df, id_discrete, id_continuous)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#crep.unbalanced_merge" title="crep.unbalanced_merge"><code class="xref py py-obj docutils literal notranslate"><span class="pre">unbalanced_merge</span></code></a>(→ pandas.DataFrame)</p></td>
+<td><p>Merge admissible and non-admissible dataframes based on discrete and continuous identifiers.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#crep.compute_discontinuity" title="crep.compute_discontinuity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_discontinuity</span></code></a>(df, id_discrete, id_continuous)</p></td>
 <td><p>Compute discontinuity in rail segment. The i-th element in return</p></td>
 </tr>
 </tbody>
@@ -422,7 +426,7 @@ document.write(`
 
 <dl class="py function">
 <dt class="sig sig-object py" id="crep.aggregate_duplicates">
-<span class="sig-prename descclassname"><span class="pre">crep.</span></span><span class="sig-name descname"><span class="pre">aggregate_duplicates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_discrete</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_continuous</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dict_agg</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#crep.aggregate_duplicates" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">crep.</span></span><span class="sig-name descname"><span class="pre">aggregate_duplicates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_discrete</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_continuous</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dict_agg</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#crep.aggregate_duplicates" title="Link to this definition">#</a></dt>
 <dd><p>Removes duplicated rows by aggregating them.
 TODO : assess</p>
 <dl class="field-list simple">
@@ -513,6 +517,45 @@ id_discrete and id_continuous as well as other columns for the features of inter
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="crep.unbalanced_merge">
+<span class="sig-prename descclassname"><span class="pre">crep.</span></span><span class="sig-name descname"><span class="pre">unbalanced_merge</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_admissible</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_not_admissible</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pandas.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_discrete</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">iter</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_continuous</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">how</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">pandas.DataFrame</span></span></span><a class="headerlink" href="#crep.unbalanced_merge" title="Link to this definition">#</a></dt>
+<dd><p>Merge admissible and non-admissible dataframes based on discrete and continuous identifiers.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>data_admissible</strong><span class="classifier">pd.DataFrame</span></dt><dd><p>DataFrame containing admissible data.</p>
+</dd>
+<dt><strong>data_not_admissible</strong><span class="classifier">pd.DataFrame</span></dt><dd><p>DataFrame containing non-admissible data.</p>
+</dd>
+<dt><strong>id_discrete</strong><span class="classifier">list</span></dt><dd><p>List of column names representing discrete identifiers.</p>
+</dd>
+<dt><strong>id_continuous</strong><span class="classifier">list</span></dt><dd><p>List of column names representing continuous identifiers.</p>
+</dd>
+<dt><strong>how: str</strong></dt><dd><p>how to make the merge, possible options are</p>
+<ul class="simple">
+<li><p>‘left’</p></li>
+<li><p>‘right’</p></li>
+<li><p>‘inner’</p></li>
+<li><p>‘outer’</p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>pd.DataFrame</dt><dd><p>A DataFrame resulting from the unbalanced merge of admissible and non-admissible data.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The function performs the following steps:
+1. Combines and sorts the admissible and non-admissible data based on the identifiers.
+2. Resolves overlaps and conflicts between the admissible and non-admissible data.
+3. Merges and returns the final DataFrame.</p>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="crep.compute_discontinuity">
 <span class="sig-prename descclassname"><span class="pre">crep.</span></span><span class="sig-name descname"><span class="pre">compute_discontinuity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_discrete</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id_continuous</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#crep.compute_discontinuity" title="Link to this definition">#</a></dt>
 <dd><p>Compute discontinuity in rail segment. The i-th element in return
@@ -575,6 +618,7 @@ will be True if i-1 and i are discontinuous</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crep.aggregate_duplicates"><code class="docutils literal notranslate"><span class="pre">aggregate_duplicates()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crep.merge_event"><code class="docutils literal notranslate"><span class="pre">merge_event()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crep.aggregate_on_segmentation"><code class="docutils literal notranslate"><span class="pre">aggregate_on_segmentation()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crep.unbalanced_merge"><code class="docutils literal notranslate"><span class="pre">unbalanced_merge()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#crep.compute_discontinuity"><code class="docutils literal notranslate"><span class="pre">compute_discontinuity()</span></code></a></li>
 </ul>
 </li>

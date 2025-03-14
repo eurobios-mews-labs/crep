@@ -140,7 +140,7 @@ Module Contents
    ..
        !! processed by numpydoc !!
 
-.. py:function:: unbalanced_concat(df1: pandas.DataFrame, df2: pandas.DataFrame, id_discrete: list[Any], id_continuous: [Any, Any], ignore_homogenize: bool = False, verbose: bool = False) -> pandas.DataFrame
+.. py:function:: unbalanced_concat(df1: pandas.DataFrame, df2: pandas.DataFrame, id_discrete: List[Any], id_continuous: [Any, Any], ignore_homogenize: bool = False, verbose: bool = False) -> pandas.DataFrame
 
    
    Concatenates the rows from two dataframes, and adjusts the lengths of the segments so that for each segment in the
@@ -340,7 +340,7 @@ Module Contents
 
 .. py:function:: __table_jumps(data, id1, id2, id_discrete)
 
-.. py:function:: aggregate_duplicates(df: pandas.DataFrame, id_discrete: list[Any], id_continuous: [Any, Any], dict_agg: dict[str, list[Any]] | None = None, verbose: bool = False)
+.. py:function:: aggregate_duplicates(df: pandas.DataFrame, id_discrete: List[Any], id_continuous: [Any, Any], dict_agg: dict[str, List[Any]] | None = None, verbose: bool = False)
 
    
    Removes duplicated rows by aggregating them.
@@ -389,7 +389,7 @@ Module Contents
    ..
        !! processed by numpydoc !!
 
-.. py:function:: aggregate_continuous_data(df: pandas.DataFrame, id_discrete: list[Any], id_continuous: [Any, Any], target_size: int, dict_agg: None | dict[str, list[Any]] = None, verbose: bool = False) -> pandas.DataFrame
+.. py:function:: aggregate_continuous_data(df: pandas.DataFrame, id_discrete: List[Any], id_continuous: [Any, Any], target_size: int, dict_agg: None | dict[str, List[Any]] = None, verbose: bool = False) -> pandas.DataFrame
 
    
    Aggregate segments to uniformize the size of smaller segments.
@@ -440,7 +440,7 @@ Module Contents
    ..
        !! processed by numpydoc !!
 
-.. py:function:: split_segment(df: pandas.DataFrame, id_discrete: list[Any], id_continuous: [Any, Any], target_size: int, columns_sum_aggregation: list[str] = None, verbose: bool = False) -> pandas.DataFrame
+.. py:function:: split_segment(df: pandas.DataFrame, id_discrete: List[Any], id_continuous: [Any, Any], target_size: int, columns_sum_aggregation: List[str] = None, verbose: bool = False) -> pandas.DataFrame
 
    
    Uniformizes segment size by splitting them into shorter segments close to target size.
@@ -490,7 +490,7 @@ Module Contents
    ..
        !! processed by numpydoc !!
 
-.. py:function:: homogenize_within(df: pandas.DataFrame, id_discrete: list[Any], id_continuous: [Any, Any], target_size: float | int | None = None, method: Literal['agg', 'split'] | list[Literal['agg', 'split']] | set[Literal['agg', 'split']] | None = None, dict_agg: dict[str, list[Any]] | None = None, strict_size: bool = False, verbose: bool = False) -> pandas.DataFrame
+.. py:function:: homogenize_within(df: pandas.DataFrame, id_discrete: List[Any], id_continuous: [Any, Any], target_size: float | int | None = None, method: Literal['agg', 'split'] | List[Literal['agg', 'split']] | set[Literal['agg', 'split']] | None = None, dict_agg: dict[str, List[Any]] | None = None, strict_size: bool = False, verbose: bool = False) -> pandas.DataFrame
 
    
    Uniformizes segment size by splitting them into shorter segments close to target size. The uniformization aims
