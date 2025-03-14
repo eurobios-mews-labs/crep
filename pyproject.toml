@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "crep"
 version = "2025.1.6"
 description = ""
-authors = [{ name = 'Vincent Laurent', email = 'vincent.laurent[at]mews-labs.com' }]
+authors = [{ name = 'Vincent Laurent', email = 'vincent.laurent@mews-labs.com' }]
 readme = "README.md"
 requires-python = '>=3.6'
 dependencies = [
@@ -16,4 +16,3 @@ dependencies = [
 
 [tool.setuptools.packages.find]
 include = ["data*", "*"] 
-
