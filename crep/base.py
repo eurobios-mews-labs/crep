@@ -4,7 +4,7 @@
 # You may obtain a copy of the License at
 #     https://cecill.info/
 import warnings
-from typing import Any, Literal, Iterable, Dict, Optional, Union
+from typing import Any, Literal, Iterable, Dict, Optional, Union, Set
 
 import numpy as np
 import pandas as pd
@@ -1073,7 +1073,7 @@ def homogenize_within(
         id_discrete: Iterable[Any],
         id_continuous: [Any, Any],
         target_size: Optional[Union[float,int]] = None,
-        method: Optional[Union[Literal["agg", "split"], Iterable[Literal["agg", "split"]], set[Literal["agg", "split"]]]] = None,
+        method: Optional[Union[Literal["agg", "split"], Iterable[Literal["agg", "split"]], Set[Literal["agg", "split"]]]] = None,
         dict_agg: Optional[Dict[str, Iterable[Any]]] = None,
         strict_size: bool = False,
         verbose: bool = False
