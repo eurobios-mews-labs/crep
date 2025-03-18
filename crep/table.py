@@ -275,8 +275,7 @@ class DataFrameContinuous(pd.DataFrame):
     def homogenize(
             self,
             target_size: int,
-            method: Literal["agg", "split"] | Iterable[Literal["agg", "split"]] | set[
-                Literal["agg", "split"]] | None = None,
+            method= None,
             dict_agg: Dict[str, Iterable[Any]] | None = None,
             strict_size: bool = False,
             verbose: bool = False
