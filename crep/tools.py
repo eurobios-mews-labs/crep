@@ -4,8 +4,7 @@
 # You may obtain a copy of the License at
 #     https://cecill.info/
 import warnings
-from typing import Any, Iterable, Literal
-import typing
+from typing import Any, Iterable, Literal, Dict, Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -213,12 +212,12 @@ def cumul_length(df: pd.DataFrame, id_continuous: [Any, Any]) -> int:
     return diff.sum()
 
 
-def reorder_columns(df: pd.DataFrame, id_discrete: typing.List[Any], id_continuous: [Any, Any]):
+def reorder_columns(df: pd.DataFrame, id_discrete: Iterable[Any], id_continuous: [Any, Any]):
     other = [col for col in df.columns if col not in [*id_discrete, *id_continuous]]
     return df[[*id_discrete, *id_continuous, *other]]
 
 
-def name_simplifier(names: list[str]):
+def name_simplifier(names: Iterable[str]):
     list_agg_op = ["mean", "max", "min", "sum"]
     new_names = []
     for n in names:
@@ -232,7 +231,7 @@ def name_simplifier(names: list[str]):
     return new_names
 
 
-def mark_new_segment(df: pd.DataFrame, id_discrete: list[Any], id_continuous: [Any, Any]) -> pd.Series:
+def mark_new_segment(df: pd.DataFrame, id_discrete: Iterable[Any], id_continuous: [Any, Any]) -> pd.Series:
     """
     Creates a boolean pd.Series aligning with df indices. True: there is a change any of the id_discrete
     value between row n and row n-1 or there is a discontinuity (shown by id_continuous) between row n and row n-1
@@ -258,7 +257,7 @@ def mark_new_segment(df: pd.DataFrame, id_discrete: list[Any], id_continuous: [A
 
 def compute_cumulated_length(
         df: pd.DataFrame,
-        id_discrete: list[Any],
+        id_discrete: Iterable[Any],
         id_continuous: [Any, Any]
 ) -> pd.Series:
     """
@@ -294,10 +293,10 @@ def compute_cumulated_length(
 
 def concretize_aggregation(
         df: pd.DataFrame,
-        id_discrete: list[Any],
+        id_discrete: Iterable[Any],
         id_continuous: [Any, Any],
-        dict_agg: dict[str, list[Any]] | None,
-        add_group_by: Any | list[Any] = None,
+        dict_agg: Optional[Dict[str, Iterable[Any]]],
+        add_group_by: Optional[Union[Any, Iterable[Any]]] = None,
         verbose: bool = False
 ) -> pd.DataFrame:
     """
@@ -413,7 +412,7 @@ def concretize_aggregation(
 
 def n_cut_finder(
         df: pd.DataFrame,
-        id_discrete: list[Any],
+        id_discrete: Iterable[Any],
         id_continuous: [Any, Any],
         target_size: int,
         method: Literal["agg", "split"]
@@ -479,7 +478,7 @@ def n_cut_finder(
 
 def clusterize(
         df: pd.DataFrame,
-        id_discrete: list[Any],
+        id_discrete: Iterable[Any],
         id_continuous: [Any, Any],
         target_size: int,
 ) -> pd.Series:
@@ -572,12 +571,14 @@ def clusterize(
             axis=1)
         return df["__lim__"]
 
-def sort(df: pd.DataFrame, id_discrete: list[Any], id_continuous: [Any, Any]) -> pd.DataFrame:
+def sort(df: pd.DataFrame,
+         id_discrete: Iterable[Any],
+         id_continuous: [Any, Any]) -> pd.DataFrame:
     return df.sort_values(by=[*id_discrete, *id_continuous])
 
 
 
-def count_parallel_segment(df, id_discrete:list[Any], id_continuous: [Any, Any]) -> pd.DataFrame:
+def count_parallel_segment(df, id_discrete:Iterable[Any], id_continuous: [Any, Any]) -> pd.DataFrame:
     """This function aims at calculating the number of track for id_discret."""
 
     col = "parallel_count"
