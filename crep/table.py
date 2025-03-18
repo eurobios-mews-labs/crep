@@ -111,7 +111,7 @@ class DataFrameContinuous(pd.DataFrame):
 
     @modifier
     def filter_by_discrete_variables(self,
-                                     dict_range: Dict[str, tuple[Any | None, Any | None]]) -> 'DataFrameContinuous':
+                                     dict_range: Dict) -> 'DataFrameContinuous':
         """
         Filters a dataset by keeping only the specified values
 
@@ -131,7 +131,7 @@ class DataFrameContinuous(pd.DataFrame):
 
     @modifier
     def filter_by_continuous_variables(self,
-                                       dict_range: Dict[str, tuple[Any | None, Any | None]],
+                                       dict_range: Dict,
                                        keep_nan=True) -> 'DataFrameContinuous':
         """
         Filter a dataset by keeping the values above, between or below continuous values

@@ -4,7 +4,7 @@
 # You may obtain a copy of the License at
 #     https://cecill.info/
 import warnings
-from typing import Any, Literal, Iterable, Dict, Optional, Union, Set
+from typing import Any, Tuple, Literal, Iterable, Dict, Optional, Union, Set
 
 import numpy as np
 import pandas as pd
@@ -1195,7 +1195,7 @@ def homogenize_between(
         dict_agg_df2: Optional[Dict[str, Iterable[str]]] = None,
         keep_df1: bool = False,
         verbose: bool = False
-) -> tuple[pd.DataFrame, pd.DataFrame]:
+) -> Tuple[pd.DataFrame, pd.DataFrame]:
     """
     If the ratio of max segment size in one dataframe and min segment size in the other dataframe > 2, it may create
     issues in the unbalanced_concat function. homogenize_between changes the segments sizes in the dataframes to
