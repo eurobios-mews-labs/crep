@@ -571,7 +571,9 @@ def clusterize(
             axis=1)
         return df["__lim__"]
 
-def sort(df: pd.DataFrame, id_discrete: Iterable[Any], id_continuous: [Any, Any]) -> pd.DataFrame:
+def sort(df: pd.DataFrame,
+         id_discrete: Iterable[Any],
+         id_continuous: [Any, Any]) -> pd.DataFrame:
     return df.sort_values(by=[*id_discrete, *id_continuous])
 
 
