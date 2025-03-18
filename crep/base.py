@@ -4,7 +4,7 @@
 # You may obtain a copy of the License at
 #     https://cecill.info/
 import warnings
-from typing import Any, Literal, Iterable, Dict
+from typing import Any, Literal, Iterable, Dict, Optional
 import typing
 
 import numpy as np
@@ -371,8 +371,8 @@ def unbalanced_concat(
 
 
 def aggregate_constant(df: pd.DataFrame,
-                       id_discrete: iter,
-                       id_continuous: iter,
+                       id_discrete: Iterable[Any],
+                       id_continuous: [Any, Any],
                        ):
     """
     Parameters
@@ -453,7 +453,7 @@ def __merge_index(data_left,
 def merge_event(
         data_left: pd.DataFrame,
         data_right: pd.DataFrame,
-        id_discrete: iter,
+        id_discrete: Iterable[Any],
         id_continuous: [Any, Any],
         id_event
 ):
@@ -604,8 +604,8 @@ def create_regular_segmentation(
 
 
 def __merge(df_left: pd.DataFrame, df_right: pd.DataFrame,
-            id_discrete: iter,
-            id_continuous,
+            id_discrete: Iterable[Any],
+            id_continuous: [Any, Any],
             names=("left", "right")):
     index = [*id_discrete, *id_continuous]
 
@@ -798,7 +798,7 @@ def aggregate_duplicates(
         df: pd.DataFrame,
         id_discrete: Iterable[Any],
         id_continuous: [Any, Any],
-        dict_agg: Dict[str, Iterable[Any]] | None = None,
+        dict_agg: Optional[Dict[str, Iterable[Any]]] = None,
         verbose: bool = False
 ):
     """
@@ -924,7 +924,7 @@ def aggregate_continuous_data(
         id_discrete: Iterable[Any],
         id_continuous: [Any, Any],
         target_size: int,
-        dict_agg: None | Dict[str, Iterable[Any]] = None,
+        dict_agg: Optional[Dict[str, Iterable[Any]]] = None,
         verbose: bool = False
 ) -> pd.DataFrame:
     """
@@ -1073,9 +1073,9 @@ def homogenize_within(
         df: pd.DataFrame,
         id_discrete: Iterable[Any],
         id_continuous: [Any, Any],
-        target_size: float | int | None = None,
-        method: Literal["agg", "split"] | Iterable[Literal["agg", "split"]] | set[Literal["agg", "split"]] | None = None,
-        dict_agg: Dict[str, Iterable[Any]] | None = None,
+        target_size: Optional[float | int] = None,
+        method: Optional[Literal["agg", "split"] | Iterable[Literal["agg", "split"]] | set[Literal["agg", "split"]]] = None,
+        dict_agg: Optional[Dict[str, Iterable[Any]]] = None,
         strict_size: bool = False,
         verbose: bool = False
 ) -> pd.DataFrame:
@@ -1192,8 +1192,8 @@ def homogenize_between(
         df2: pd.DataFrame,
         id_discrete: Iterable[Any],
         id_continuous: Iterable[Any],
-        dict_agg_df1: Dict[str, Iterable[str]] | None = None,
-        dict_agg_df2: Dict[str, Iterable[str]] | None = None,
+        dict_agg_df1: Optional[Dict[str, Iterable[str]]] = None,
+        dict_agg_df2: Optional[Dict[str, Iterable[str]]] = None,
         keep_df1: bool = False,
         verbose: bool = False
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
@@ -1224,9 +1224,9 @@ def homogenize_between(
         discrete columns (object or categorical)
     id_continuous : list of 2 column names
         continuous columns that delimit the segments' start and end
-    dict_agg_df1: optional, Dict[str, Iterable[str]] | None
+    dict_agg_df1: optional, Dict[str, Iterable[str]]
         dictionary with settings about how to handle the columns in df1 that are neither id_discrete nor id_continuous
-    dict_agg_df2: optional, Dict[str, Iterable[str]] | None
+    dict_agg_df2: optional, Dict[str, Iterable[str]]
         dictionary with settings about how to handle the columns in df2 that are neither id_discrete nor id_continuous
     keep_df1: optional, bool
         default to False. If True, the segmentation in df1 does not change. Only df2 adapts to df1.
@@ -1378,7 +1378,7 @@ def aggregate_on_segmentation(
         df_data: pd.DataFrame,
         id_discrete: Iterable[str],
         id_continuous: Iterable[str],
-        dict_agg: Dict[str, Iterable[str]] | None = None
+        dict_agg: Optional[Dict[str, Iterable[str]]]  = None
 ):
     """
     adds data to segmentation

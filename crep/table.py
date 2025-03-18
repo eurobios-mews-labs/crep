@@ -1,9 +1,10 @@
-import pandas as pd
-from typing import Any, Literal, Iterable, Dict
 import warnings
+from functools import wraps
+from typing import Any, Literal, Iterable, Dict, Optional
+
+import pandas as pd
 
 from crep import base, tools
-from functools import wraps
 
 
 def _ret(result, *args):
@@ -22,6 +23,7 @@ def modifier(func):
     def wrapper(*args, **kwargs):
         result = func(*args, **kwargs)
         return _ret(result, *args)
+
     return wrapper
 
 
@@ -57,7 +59,6 @@ class DataFrameContinuous(pd.DataFrame):
 
         return func
 
-
     def __overriding(self):
         """
         Goes through all attributes of the parent class and override the function, especially the return data type,
@@ -68,7 +69,6 @@ class DataFrameContinuous(pd.DataFrame):
             if attrib not in ["__getitem__"]:
                 if callable(getattr(pd.DataFrame, attrib)):
                     self.__dict__[attrib] = self.__make_func(attrib)
-
 
     def _return(self, df):
         if isinstance(df, DataFrameContinuous):
@@ -228,7 +228,7 @@ class DataFrameContinuous(pd.DataFrame):
 
     def aggregate_duplicates(
             self,
-            dict_agg: None | Dict[str, Iterable[Any]] = None,
+            dict_agg: Optional[Dict[str, Iterable[Any]]] = None,
             verbose: bool = False
     ) -> 'DataFrameContinuous':
         df = base.aggregate_duplicates(
@@ -243,7 +243,7 @@ class DataFrameContinuous(pd.DataFrame):
     def aggregate_continuous_data(
             self,
             target_size: int,
-            dict_agg: None | Dict[str, Iterable[Any]] = None,
+            dict_agg: Optional[Dict[str, Iterable[Any]]] = None,
             verbose: bool = False
     ) -> 'DataFrameContinuous':
         df = base.aggregate_continuous_data(
