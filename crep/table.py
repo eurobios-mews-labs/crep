@@ -276,7 +276,7 @@ class DataFrameContinuous(pd.DataFrame):
             self,
             target_size: int,
             method= None,
-            dict_agg: Dict[str, Iterable[Any]] | None = None,
+            dict_agg: Optional[Dict[str, Iterable[Any]]] = None,
             strict_size: bool = False,
             verbose: bool = False
     ) -> 'DataFrameContinuous':
