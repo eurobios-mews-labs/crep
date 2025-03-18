@@ -4,8 +4,7 @@
 # You may obtain a copy of the License at
 #     https://cecill.info/
 import warnings
-from typing import Any, Iterable, Literal
-import typing
+from typing import Any, Iterable, Literal, Dict
 
 import numpy as np
 import pandas as pd
