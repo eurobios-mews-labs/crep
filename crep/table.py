@@ -1,6 +1,6 @@
 import warnings
 from functools import wraps
-from typing import Any, Literal, Iterable, Dict, Optional
+from typing import Any, Literal, Iterable, Dict, Optional, Union
 
 import pandas as pd
 
@@ -78,7 +78,7 @@ class DataFrameContinuous(pd.DataFrame):
                                        discrete_index=self._discrete_index,
                                        continuous_index=self._continuous_index)
 
-    def concat(self, other_dfs: pd.DataFrame | Iterable[pd.DataFrame], **kwargs) -> 'DataFrameContinuous':
+    def concat(self, other_dfs: Union[pd.DataFrame, Iterable[pd.DataFrame]], **kwargs) -> 'DataFrameContinuous':
         """
         concat is an external function (not in the pd.DataFrame class, but called with pd.concat()
         This function builds the concat method such as to be able to call it as such: df.concat()
