@@ -1,5 +1,5 @@
 import pandas as pd
-from typing import Any, Literal
+from typing import Any, Literal, Iterable
 import warnings
 
 from crep import base, tools
@@ -29,7 +29,7 @@ class DataFrameContinuous(pd.DataFrame):
 
     def __init__(
             self, *args,
-            discrete_index,
+            discrete_index: Iterable[Any],
             continuous_index: [Any, Any],
             **kwargs):
         super().__init__(*args, **kwargs)
@@ -78,7 +78,7 @@ class DataFrameContinuous(pd.DataFrame):
                                        discrete_index=self._discrete_index,
                                        continuous_index=self._continuous_index)
 
-    def concat(self, other_dfs: pd.DataFrame | list[pd.DataFrame], **kwargs) -> 'DataFrameContinuous':
+    def concat(self, other_dfs: pd.DataFrame | Iterable[pd.DataFrame], **kwargs) -> 'DataFrameContinuous':
         """
         concat is an external function (not in the pd.DataFrame class, but called with pd.concat()
         This function builds the concat method such as to be able to call it as such: df.concat()
@@ -228,7 +228,7 @@ class DataFrameContinuous(pd.DataFrame):
 
     def aggregate_duplicates(
             self,
-            dict_agg: None | dict[str, list[Any]] = None,
+            dict_agg: None | dict[str, Iterable[Any]] = None,
             verbose: bool = False
     ) -> 'DataFrameContinuous':
         df = base.aggregate_duplicates(
@@ -243,7 +243,7 @@ class DataFrameContinuous(pd.DataFrame):
     def aggregate_continuous_data(
             self,
             target_size: int,
-            dict_agg: None | dict[str, list[Any]] = None,
+            dict_agg: None | dict[str, Iterable[Any]] = None,
             verbose: bool = False
     ) -> 'DataFrameContinuous':
         df = base.aggregate_continuous_data(
@@ -259,7 +259,7 @@ class DataFrameContinuous(pd.DataFrame):
     def split_segment(
             self,
             target_size: int,
-            columns_sum_aggregation: list[str] = None,
+            columns_sum_aggregation: Iterable[str] = None,
             verbose: bool = False
     ) -> 'DataFrameContinuous':
         df = base.split_segment(
@@ -275,9 +275,9 @@ class DataFrameContinuous(pd.DataFrame):
     def homogenize(
             self,
             target_size: int,
-            method: Literal["agg", "split"] | list[Literal["agg", "split"]] | set[
+            method: Literal["agg", "split"] | Iterable[Literal["agg", "split"]] | set[
                 Literal["agg", "split"]] | None = None,
-            dict_agg: dict[str, list[Any]] | None = None,
+            dict_agg: dict[str, Iterable[Any]] | None = None,
             strict_size: bool = False,
             verbose: bool = False
     ) -> 'DataFrameContinuous':
@@ -296,7 +296,7 @@ class DataFrameContinuous(pd.DataFrame):
     def aggregate_on_segmentation(
             self,
             df_segmentation: pd.DataFrame,
-            dict_agg: dict[str, list[str]] | None = None
+            dict_agg: dict[str, Iterable[str]] | None = None
     ) -> 'DataFrameContinuous':
         if len(df_segmentation.columns) > len(self.__discrete_index) + len(self.__continuous_index):
             warnings.warn("df_segmentation contains more columns than necessary. "

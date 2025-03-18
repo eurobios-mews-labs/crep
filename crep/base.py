@@ -4,7 +4,7 @@
 # You may obtain a copy of the License at
 #     https://cecill.info/
 import warnings
-from typing import Any, Literal
+from typing import Any, Literal, Iterable
 import typing
 
 import numpy as np
@@ -98,7 +98,7 @@ def merge(
 def unbalanced_merge(
         data_admissible: pd.DataFrame,
         data_not_admissible: pd.DataFrame,
-        id_discrete: iter,
+        id_discrete: Iterable,
         id_continuous: [Any, Any], how) -> pd.DataFrame:
     """
     Merge admissible and non-admissible dataframes based on discrete and continuous identifiers.
@@ -165,7 +165,7 @@ def unbalanced_merge(
 def unbalanced_concat(
         df1: pd.DataFrame,
         df2: pd.DataFrame,
-        id_discrete: typing.List[Any],
+        id_discrete: Iterable[Any],
         id_continuous: [Any, Any],
         ignore_homogenize: bool = False,
         verbose: bool = False
@@ -796,9 +796,9 @@ def __table_jumps(data, id1, id2, id_discrete):
 
 def aggregate_duplicates(
         df: pd.DataFrame,
-        id_discrete: typing.List[Any],
+        id_discrete: Iterable[Any],
         id_continuous: [Any, Any],
-        dict_agg: dict[str, typing.List[Any]] | None = None,
+        dict_agg: dict[str, Iterable[Any]] | None = None,
         verbose: bool = False
 ):
     """
@@ -921,10 +921,10 @@ def aggregate_duplicates(
 
 def aggregate_continuous_data(
         df: pd.DataFrame,
-        id_discrete: typing.List[Any],
+        id_discrete: Iterable[Any],
         id_continuous: [Any, Any],
         target_size: int,
-        dict_agg: None | dict[str, typing.List[Any]] = None,
+        dict_agg: None | dict[str, Iterable[Any]] = None,
         verbose: bool = False
 ) -> pd.DataFrame:
     """
@@ -989,10 +989,10 @@ def aggregate_continuous_data(
 
 def split_segment(
         df: pd.DataFrame,
-        id_discrete: typing.List[Any],
+        id_discrete: Iterable[Any],
         id_continuous: [Any, Any],
         target_size: int,
-        columns_sum_aggregation: typing.List[str] = None,
+        columns_sum_aggregation: Iterable[str] = None,
         verbose: bool = False
 ) -> pd.DataFrame:
     """
@@ -1008,7 +1008,7 @@ def split_segment(
         continuous columns that delimit the segments' start and end
     target_size: integer > 0
         targeted segment size
-    columns_sum_aggregation: list[str], optional
+    columns_sum_aggregation: Iterable[str], optional
         Default to empty list. Some columns may have to be summed over several segments when creating super segments.
         If so, splitting a row and assigning to each new row the same value as in the original non-split row may
         result in inflated sums later on. To counter that, the columns that should later be summed are specified in
@@ -1071,11 +1071,11 @@ def split_segment(
 
 def homogenize_within(
         df: pd.DataFrame,
-        id_discrete: typing.List[Any],
+        id_discrete: Iterable[Any],
         id_continuous: [Any, Any],
         target_size: float | int | None = None,
-        method: Literal["agg", "split"] | typing.List[Literal["agg", "split"]] | set[Literal["agg", "split"]] | None = None,
-        dict_agg: dict[str, typing.List[Any]] | None = None,
+        method: Literal["agg", "split"] | Iterable[Literal["agg", "split"]] | set[Literal["agg", "split"]] | None = None,
+        dict_agg: dict[str, Iterable[Any]] | None = None,
         strict_size: bool = False,
         verbose: bool = False
 ) -> pd.DataFrame:
@@ -1190,10 +1190,10 @@ def homogenize_within(
 def homogenize_between(
         df1: pd.DataFrame,
         df2: pd.DataFrame,
-        id_discrete: list[Any],
-        id_continuous: list[Any],
-        dict_agg_df1: dict[str, list[str]] | None = None,
-        dict_agg_df2: dict[str, list[str]] | None = None,
+        id_discrete: Iterable[Any],
+        id_continuous: Iterable[Any],
+        dict_agg_df1: dict[str, Iterable[str]] | None = None,
+        dict_agg_df2: dict[str, Iterable[str]] | None = None,
         keep_df1: bool = False,
         verbose: bool = False
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
@@ -1224,9 +1224,9 @@ def homogenize_between(
         discrete columns (object or categorical)
     id_continuous : list of 2 column names
         continuous columns that delimit the segments' start and end
-    dict_agg_df1: optional, dict[str, list[str]] | None
+    dict_agg_df1: optional, dict[str, Iterable[str]] | None
         dictionary with settings about how to handle the columns in df1 that are neither id_discrete nor id_continuous
-    dict_agg_df2: optional, dict[str, list[str]] | None
+    dict_agg_df2: optional, dict[str, Iterable[str]] | None
         dictionary with settings about how to handle the columns in df2 that are neither id_discrete nor id_continuous
     keep_df1: optional, bool
         default to False. If True, the segmentation in df1 does not change. Only df2 adapts to df1.
@@ -1276,7 +1276,7 @@ def homogenize_between(
 
 def segmentation_irregular(
         df: pd.DataFrame,
-        id_discrete: list[Any],
+        id_discrete: Iterable[Any],
         id_continuous: [Any, Any],
         length_target,
         length_minimal,
@@ -1285,9 +1285,9 @@ def segmentation_irregular(
     Parameters
     ----------
     df: pd.DataFrame
-    id_discrete: list[str]
+    id_discrete: Iterable[str]
         list of name of columns of categorical type
-    id_continuous: list[str, str]
+    id_continuous: [str, str]
         list of name of 2 columns of numerical type, indicating the start and the end of the segment
     length_target
         length to obtain at the end of the segmentation
@@ -1327,7 +1327,7 @@ def segmentation_irregular(
 
 def segmentation_regular(
         df: pd.DataFrame,
-        id_discrete: list[Any],
+        id_discrete: Iterable[Any],
         id_continuous: [Any, Any],
         length_target,
         length_gap_filling,
@@ -1376,9 +1376,9 @@ def segmentation_regular(
 def aggregate_on_segmentation(
         df_segmentation: pd.DataFrame,
         df_data: pd.DataFrame,
-        id_discrete: list[str],
-        id_continuous: list[str],
-        dict_agg: dict[str, list[str]] | None = None
+        id_discrete: Iterable[str],
+        id_continuous: Iterable[str],
+        dict_agg: dict[str, Iterable[str]] | None = None
 ):
     """
     adds data to segmentation
