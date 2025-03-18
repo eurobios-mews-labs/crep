@@ -150,11 +150,11 @@ Module Contents
    ..
        !! processed by numpydoc !!
 
-.. py:function:: reorder_columns(df: pandas.DataFrame, id_discrete: List[Any], id_continuous: [Any, Any])
+.. py:function:: reorder_columns(df: pandas.DataFrame, id_discrete: Iterable[Any], id_continuous: [Any, Any])
 
-.. py:function:: name_simplifier(names: list[str])
+.. py:function:: name_simplifier(names: Iterable[str])
 
-.. py:function:: mark_new_segment(df: pandas.DataFrame, id_discrete: list[Any], id_continuous: [Any, Any]) -> pandas.Series
+.. py:function:: mark_new_segment(df: pandas.DataFrame, id_discrete: Iterable[Any], id_continuous: [Any, Any]) -> pandas.Series
 
    
    Creates a boolean pd.Series aligning with df indices. True: there is a change any of the id_discrete
@@ -193,7 +193,7 @@ Module Contents
    ..
        !! processed by numpydoc !!
 
-.. py:function:: compute_cumulated_length(df: pandas.DataFrame, id_discrete: list[Any], id_continuous: [Any, Any]) -> pandas.Series
+.. py:function:: compute_cumulated_length(df: pandas.DataFrame, id_discrete: Iterable[Any], id_continuous: [Any, Any]) -> pandas.Series
 
    
    TODO : compute_cumulated_length.
@@ -231,7 +231,7 @@ Module Contents
    ..
        !! processed by numpydoc !!
 
-.. py:function:: concretize_aggregation(df: pandas.DataFrame, id_discrete: list[Any], id_continuous: [Any, Any], dict_agg: dict[str, list[Any]] | None, add_group_by: Any | list[Any] = None, verbose: bool = False) -> pandas.DataFrame
+.. py:function:: concretize_aggregation(df: pandas.DataFrame, id_discrete: Iterable[Any], id_continuous: [Any, Any], dict_agg: Optional[Dict[str, Iterable[Any]]], add_group_by: Optional[Union[Any, Iterable[Any]]] = None, verbose: bool = False) -> pandas.DataFrame
 
    
    Groupby + aggregation operations
@@ -282,7 +282,7 @@ Module Contents
    ..
        !! processed by numpydoc !!
 
-.. py:function:: n_cut_finder(df: pandas.DataFrame, id_discrete: list[Any], id_continuous: [Any, Any], target_size: int, method: Literal['agg', 'split']) -> pandas.Series
+.. py:function:: n_cut_finder(df: pandas.DataFrame, id_discrete: Iterable[Any], id_continuous: [Any, Any], target_size: int, method: Literal['agg', 'split']) -> pandas.Series
 
    
    Finds in how many sub-segments the segment should be cut (method = "split") or find where to stop the aggregation of
@@ -337,7 +337,7 @@ Module Contents
    ..
        !! processed by numpydoc !!
 
-.. py:function:: clusterize(df: pandas.DataFrame, id_discrete: list[Any], id_continuous: [Any, Any], target_size: int) -> pandas.Series
+.. py:function:: clusterize(df: pandas.DataFrame, id_discrete: Iterable[Any], id_continuous: [Any, Any], target_size: int) -> pandas.Series
 
    
    TODO: create_cluster_by_size
@@ -382,9 +382,9 @@ Module Contents
    ..
        !! processed by numpydoc !!
 
-.. py:function:: sort(df: pandas.DataFrame, id_discrete: list[Any], id_continuous: [Any, Any]) -> pandas.DataFrame
+.. py:function:: sort(df: pandas.DataFrame, id_discrete: Iterable[Any], id_continuous: [Any, Any]) -> pandas.DataFrame
 
-.. py:function:: count_parallel_segment(df, id_discrete: list[Any], id_continuous: [Any, Any]) -> pandas.DataFrame
+.. py:function:: count_parallel_segment(df, id_discrete: Iterable[Any], id_continuous: [Any, Any]) -> pandas.DataFrame
 
    
    This function aims at calculating the number of track for id_discret.
