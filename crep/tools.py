@@ -4,7 +4,7 @@
 # You may obtain a copy of the License at
 #     https://cecill.info/
 import warnings
-from typing import Any, Iterable, Literal, Dict, Optional
+from typing import Any, Iterable, Literal, Dict, Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -296,7 +296,7 @@ def concretize_aggregation(
         id_discrete: Iterable[Any],
         id_continuous: [Any, Any],
         dict_agg: Optional[Dict[str, Iterable[Any]]],
-        add_group_by: Optional[Any | Iterable[Any]] = None,
+        add_group_by: Optional[Union[Any, Iterable[Any]]] = None,
         verbose: bool = False
 ) -> pd.DataFrame:
     """
