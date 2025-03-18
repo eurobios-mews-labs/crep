@@ -1,5 +1,5 @@
 import pandas as pd
-from typing import Any, Literal, Iterable
+from typing import Any, Literal, Iterable, Dict
 import warnings
 
 from crep import base, tools
@@ -111,7 +111,7 @@ class DataFrameContinuous(pd.DataFrame):
 
     @modifier
     def filter_by_discrete_variables(self,
-                                     dict_range: dict[str, tuple[Any | None, Any | None]]) -> 'DataFrameContinuous':
+                                     dict_range: Dict[str, tuple[Any | None, Any | None]]) -> 'DataFrameContinuous':
         """
         Filters a dataset by keeping only the specified values
 
@@ -131,14 +131,14 @@ class DataFrameContinuous(pd.DataFrame):
 
     @modifier
     def filter_by_continuous_variables(self,
-                                       dict_range: dict[str, tuple[Any | None, Any | None]],
+                                       dict_range: Dict[str, tuple[Any | None, Any | None]],
                                        keep_nan=True) -> 'DataFrameContinuous':
         """
         Filter a dataset by keeping the values above, between or below continuous values
 
         Parameters
         ----------
-        dict_range: dict[str, tuple[Any, Any]]
+        dict_range: Dict[str, tuple[Any, Any]]
             A dictionary with for keys the name of the variables and for values a tuple containing the minimum value
             to keep and the maximum value to keep
         keep_nan: optional, default to True
@@ -228,7 +228,7 @@ class DataFrameContinuous(pd.DataFrame):
 
     def aggregate_duplicates(
             self,
-            dict_agg: None | dict[str, Iterable[Any]] = None,
+            dict_agg: None | Dict[str, Iterable[Any]] = None,
             verbose: bool = False
     ) -> 'DataFrameContinuous':
         df = base.aggregate_duplicates(
@@ -243,7 +243,7 @@ class DataFrameContinuous(pd.DataFrame):
     def aggregate_continuous_data(
             self,
             target_size: int,
-            dict_agg: None | dict[str, Iterable[Any]] = None,
+            dict_agg: None | Dict[str, Iterable[Any]] = None,
             verbose: bool = False
     ) -> 'DataFrameContinuous':
         df = base.aggregate_continuous_data(
@@ -277,7 +277,7 @@ class DataFrameContinuous(pd.DataFrame):
             target_size: int,
             method: Literal["agg", "split"] | Iterable[Literal["agg", "split"]] | set[
                 Literal["agg", "split"]] | None = None,
-            dict_agg: dict[str, Iterable[Any]] | None = None,
+            dict_agg: Dict[str, Iterable[Any]] | None = None,
             strict_size: bool = False,
             verbose: bool = False
     ) -> 'DataFrameContinuous':
@@ -296,7 +296,7 @@ class DataFrameContinuous(pd.DataFrame):
     def aggregate_on_segmentation(
             self,
             df_segmentation: pd.DataFrame,
-            dict_agg: dict[str, Iterable[str]] | None = None
+            dict_agg: Dict[str, Iterable[str]] | None = None
     ) -> 'DataFrameContinuous':
         if len(df_segmentation.columns) > len(self.__discrete_index) + len(self.__continuous_index):
             warnings.warn("df_segmentation contains more columns than necessary. "

@@ -296,7 +296,7 @@ def concretize_aggregation(
         df: pd.DataFrame,
         id_discrete: Iterable[Any],
         id_continuous: [Any, Any],
-        dict_agg: dict[str, Iterable[Any]] | None,
+        dict_agg: Dict[str, Iterable[Any]] | None,
         add_group_by: Any | Iterable[Any] = None,
         verbose: bool = False
 ) -> pd.DataFrame:
