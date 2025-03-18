@@ -295,7 +295,7 @@ class DataFrameContinuous(pd.DataFrame):
     def aggregate_on_segmentation(
             self,
             df_segmentation: pd.DataFrame,
-            dict_agg: Dict[str, Iterable[str]] | None = None
+            dict_agg: Optional[Dict[str, Iterable[str]]] = None
     ) -> 'DataFrameContinuous':
         if len(df_segmentation.columns) > len(self.__discrete_index) + len(self.__continuous_index):
             warnings.warn("df_segmentation contains more columns than necessary. "
