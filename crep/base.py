@@ -3,6 +3,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #     https://cecill.info/
+import logging
 import warnings
 from typing import Any, Tuple, Literal, Iterable, Dict, Optional, Union, Set
 
@@ -10,7 +11,7 @@ import numpy as np
 import pandas as pd
 
 from crep import tools
-from crep.tools import concretize_aggregation
+from crep.tools import concretize_aggregation, admissible_dataframe
 
 
 def merge(
@@ -146,7 +147,6 @@ def unbalanced_merge(
     df_to_resolve_admissible = pd.merge(df_to_resolve_no_duplicates[[*id_discrete, *id_continuous, "___id"]],
                                         df_to_resolve_admissible,
                                         on=[*id_discrete, *id_continuous])
-
 
     df_ret = merge(
         df_to_resolve_no_duplicates[[*id_discrete, *id_continuous, "___id"]],
@@ -870,7 +870,8 @@ def aggregate_duplicates(
     for i, items in enumerate(dict_agg.items()):
         k, v = items
         if k == "mode":
-            data = df_dupl[group_by + v].groupby(by=group_by).agg(lambda x: ", ".join(x.mode().to_list()[0])).reset_index().drop(group_by, axis=1)
+            data = df_dupl[group_by + v].groupby(by=group_by).agg(
+                lambda x: ", ".join(x.mode().to_list()[0])).reset_index().drop(group_by, axis=1)
         else:
             data = df_dupl[group_by + v].groupby(by=group_by).agg(k).reset_index().drop(group_by, axis=1)
         df_gr.append(data)
@@ -1072,8 +1073,9 @@ def homogenize_within(
         df: pd.DataFrame,
         id_discrete: Iterable[Any],
         id_continuous: [Any, Any],
-        target_size: Optional[Union[float,int]] = None,
-        method: Optional[Union[Literal["agg", "split"], Iterable[Literal["agg", "split"]], Set[Literal["agg", "split"]]]] = None,
+        target_size: Optional[Union[float, int]] = None,
+        method: Optional[
+            Union[Literal["agg", "split"], Iterable[Literal["agg", "split"]], Set[Literal["agg", "split"]]]] = None,
         dict_agg: Optional[Dict[str, Iterable[Any]]] = None,
         strict_size: bool = False,
         verbose: bool = False
@@ -1331,41 +1333,50 @@ def segmentation_regular(
         length_target,
         length_gap_filling,
 ) -> pd.DataFrame:
+    if not admissible_dataframe(df, id_discrete=id_discrete, id_continuous=id_continuous):
+        logging.warning("Dataframe is not admissible for segmentation regular")
     data = tools.create_continuity(
         df.__deepcopy__(),
         id_discrete=id_discrete,
         id_continuous=id_continuous,
         limit=length_gap_filling)
-    indexes = [*id_continuous, *id_discrete]
+    indexes = [*id_discrete, *id_continuous]
+    data["__fill__"] = 1
+    df_disc = aggregate_constant(
+        data[[*id_discrete, *id_continuous, "__fill__"]], id_discrete=id_discrete,
+        id_continuous=id_continuous)
 
-    df_disc_f = data.groupby(id_discrete)[id_continuous[1]].max().reset_index()
-    df_disc_d = data.groupby(id_discrete)[id_continuous[0]].min().reset_index()
-    df_disc = pd.merge(df_disc_d, df_disc_f, on=id_discrete)
     df_disc["nb_coupon"] = np.round((df_disc[id_continuous[1]] - df_disc[id_continuous[0]]) / length_target).astype(int)
     df_disc["nb_coupon_cumsum"] = df_disc["nb_coupon"].cumsum()
     df_disc["nb_coupon_cumsum0"] = 0
     df_disc.loc[df_disc.index[1:], "nb_coupon_cumsum0"] = df_disc["nb_coupon_cumsum"].values[:-1]
 
-    # Create empty regular segment table and we fill it with regular segment
-    df_new = pd.DataFrame(index=range(df_disc["nb_coupon"].sum()),
-                          columns=id_discrete)
+    total_rows = df_disc["nb_coupon"].sum()
+    df_new = pd.DataFrame(index=np.arange(total_rows), columns=indexes)
 
-    accumulator = {k: [] for k in indexes}
+    start_vals = df_disc[id_continuous[0]].values
+    end_vals = df_disc[id_continuous[1]].values
+    nb_coupons = df_disc["nb_coupon"].values
+    nb_coupon_cumsum0 = df_disc["nb_coupon_cumsum0"].values
+    discrete_vals = {idd: df_disc[idd].values for idd in id_discrete}
 
-    for ix in df_disc.index:
-        nb_cs = df_disc.loc[ix].to_dict()
-        value_temp = np.linspace(
-            nb_cs[id_continuous[0]],
-            nb_cs[id_continuous[1]],
-            num=int(nb_cs["nb_coupon"] + 1), dtype=int)
 
-        accumulator[id_continuous[0]] += list(value_temp[:-1])
-        accumulator[id_continuous[1]] += list(value_temp[1:])
+    for i in range(len(df_disc)):
+        n = nb_coupons[i]
+        if n == 0:
+            continue
+
+
+        lin_vals = start_vals[i] + length_target * np.arange(n + 1)
+        lin_vals[-1] = end_vals[i]
+        s = nb_coupon_cumsum0[i]
+        e = s + n
+
+        df_new.loc[s:e - 1, id_continuous[0]] = lin_vals[:-1]
+        df_new.loc[s:e - 1, id_continuous[1]] = lin_vals[1:]
+
         for idd in id_discrete:
-            accumulator[idd] += list(np.array([nb_cs[idd]] * len(value_temp[1:])))
-
-    for index in indexes:
-        df_new[index] = accumulator[index]
+            df_new.loc[s:e - 1, idd] = discrete_vals[idd][i]
 
     df_new.index = range(len(df_new))
 
@@ -1377,7 +1388,7 @@ def aggregate_on_segmentation(
         df_data: pd.DataFrame,
         id_discrete: Iterable[str],
         id_continuous: Iterable[str],
-        dict_agg: Optional[Dict[str, Iterable[str]]]  = None
+        dict_agg: Optional[Dict[str, Iterable[str]]] = None
 ):
     """
     adds data to segmentation
@@ -1456,6 +1467,3 @@ def aggregate_on_segmentation(
     df_merge = tools.reorder_columns(df_merge, id_discrete, id_continuous)
 
     return df_merge
-
-
-

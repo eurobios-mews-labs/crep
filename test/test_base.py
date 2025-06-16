@@ -256,6 +256,24 @@ def test_regular_table(get_examples):
     assert df_ret.equals(df_left)
 
 
+def test_regular_segment_table(get_examples):
+    df_left, df_right = get_examples
+    df_ret = base.segmentation_regular(
+        df_left, length_target=9, length_gap_filling=9, id_discrete=["id"], id_continuous=["t1", "t2"]
+    )
+    print(df_ret.shape)
+    assert df_ret.shape[0] == sum([11, 10,  1,  3])
+    assert (df_ret.columns.to_numpy().astype(str) == np.array(["id", "t1", "t2"])).all()
+
+    df_ret_2 = base.segmentation_regular(
+        df_left, length_target=9, length_gap_filling=12, id_discrete=["id"], id_continuous=["t1", "t2"]
+    )
+    print(df_ret_2.shape)
+    assert df_ret_2.shape[0] > df_ret.shape[0]
+    assert (df_ret_2.columns.to_numpy().astype(str) == np.array(["id", "t1", "t2"])).all()
+
+    assert not df_ret_2.equals(df_ret)
+
 def test_merge_event_case2():
     df1 = pd.DataFrame({"id": [1000] * 4 + [2000] * 2 + [4000] * 2,
                         "cont1": [50, 100, 150, 200, 50, 100, 250, 300],
@@ -572,10 +590,6 @@ def test_aggregate_duplicates_case3():
         'max_date': [2000, 2002, 2006, 2008, 2010, 2016]
     })), "\n" + str(df_test)
 
-
-# ====================================================================================================================
-#                                                   UNBALANCED CONCAT
-# ====================================================================================================================
 
 
 def test_unbalanced_concat_case1():
