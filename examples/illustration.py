@@ -122,7 +122,7 @@ illustrate_2_inputs(merge,
 illustrate_2_inputs(base.unbalanced_merge,
                     pd.read_csv("data/base_right.csv").drop([0, 1, 5]),
                     pd.read_csv("data/base_left.csv").replace(1, 2),
-                    dict(),
+                    dict(how="outer"),
                     id_discrete=["id"],
                     continuous_index=["t1", "t2"]
                     )
@@ -141,7 +141,6 @@ illustrate_1_input(tools.build_admissible_data,
                    id_discrete=["id"],
                    continuous_index=["t1", "t2"]
                    )
-
 
 illustrate_1_input(function=aggregate_constant,
                    df=pd.read_csv("data/advanced_left.csv"),
@@ -170,10 +169,13 @@ illustrate_1_input(function=tools.create_continuity,
                    )
 
 df = pd.read_csv("data/base_right.csv")
-df_seg = base.segmentation_regular(df, id_discrete=["id"],
-                                   id_continuous=["t1", "t2"],
-                                   length_target=7,
-                                   length_gap_filling=30)
+illustrate_1_input(function=base.segmentation_regular,
+                   df=df, id_discrete=["id"],
+                   continuous_index=["t1", "t2"],
+                   parameters=dict(length_target=7,
+                                   length_gap_filling=10),
+                   data_columns=["id"]
+                   )
 # illustrate_1_input(function=base.aggregate,
 #                    df=df,
 #                    parameters=dict(df_target_segmentation=df_seg),
